@@ -350,6 +350,14 @@ private struct VideoDetailInteractiveScrollHost<Content: View>: UIViewRepresenta
         private var hasUserScrolled = false
         private var isUpdatingView = false
 
+        // 显式 deinit：先释放闭包与宿主控制器，避免 whole-module 优化时
+        // 合成 deinit 在 EarlyPerfInliner 中触发编译器崩溃（Xcode 26.6 / Swift 6.3.3）。
+        deinit {
+            onScrollOffsetChange = nil
+            onScrollPhaseChange = nil
+            hostingController = nil
+        }
+
         fileprivate func update(
             scrollView: UIScrollView,
             tab: VideoDetailContentTab,
