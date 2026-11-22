@@ -542,9 +542,9 @@ final class QishuiAPI: ObservableObject {
         guard let identifier = song.qishuiID, !identifier.isEmpty else { return nil }
         // 直连优先：歌曲详情自带歌词（track_v2 / h5 seo_track 的 lyric.content，
         // 汽水逐字格式转标准 LRC），网关 /lyric 兜底。取链 playbackURL 不动。
-        if let direct = try? await directLyric(trackID: identifier),
-           let direct, !direct.isEmpty {
-            return direct
+        let directLyricText = (try? await directLyric(trackID: identifier)) ?? nil
+        if let directLyricText, !directLyricText.isEmpty {
+            return directLyricText
         }
         let data = try await requestObject("/lyric", query: ["track_id": identifier])
         if let lyric = firstString(data, keys: ["lyric", "lyrics", "content", "lrc"]), !lyric.isEmpty {
@@ -1525,9 +1525,11 @@ extension QishuiAPI {
         request.setValue("application/json, text/javascript", forHTTPHeaderField: "Accept")
         request.setValue("https://api.qishui.com/", forHTTPHeaderField: "Referer")
         let (data, response) = try await directSession.data(for: request)
-        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let payload = dictionary(root["data"]) ?? root,
-              let token = firstString(payload, keys: ["token"]), !token.isEmpty else {
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw QishuiAPIError.invalidResponse
+        }
+        let payload = dictionary(root["data"]) ?? root
+        guard let token = firstString(payload, keys: ["token"]), !token.isEmpty else {
             throw QishuiAPIError.invalidResponse
         }
         let qrContent = firstString(payload, keys: ["qrcode", "qrcode_index_url", "web_url"]) ?? ""
