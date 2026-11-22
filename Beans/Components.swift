@@ -848,12 +848,17 @@ struct BeansSheetPresentationSurfaceClearer: UIViewControllerRepresentable {
 
 extension View {
     /// 主页在 iOS 26+ 使用透明导航栏，让壁纸和内容可延伸到顶部安全区域。
+    /// iOS 26 以下：根页没有标题与工具栏按钮，直接隐藏导航栏。
+    /// 否则在 legacy 底栏宿主（ZStack + GeometryReader）里，导航栏 44pt 的
+    /// 安全区贡献定不下来，首页 ScrollView 的静止位置会以约 44pt 为步长
+    /// 反复上下跳动；隐藏后该贡献恒为 0，位置稳定。推送的详情页有各自的
+    /// 导航栏，不受此修饰符影响。
     @ViewBuilder
     func beansHomeNavigationBarTransparent() -> some View {
         if #available(iOS 26, *) {
             self.toolbarBackground(.hidden, for: .navigationBar)
         } else {
-            self
+            self.toolbar(.hidden, for: .navigationBar)
         }
     }
 
