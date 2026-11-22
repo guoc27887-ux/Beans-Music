@@ -1,0 +1,1 @@
+Beans/PlayerManager.swift:175:41: error: 'BeansLockScreenArtwork' is only available in iOS 26.0 or newer

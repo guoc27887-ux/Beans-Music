@@ -7,7 +7,8 @@ struct BeansApp: App {
     @UIApplicationDelegateAdaptor(CiliCiliHostAppDelegate.self) private var appDelegate
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var auth = AuthStore()
-    @StateObject private var player = PlayerManager()
+    @StateObject private var player: PlayerManager
+    @StateObject private var listenTogether: ListenTogetherStore
     @StateObject private var theme = ThemeStore.shared
     @StateObject private var favorites = FavoritesStore.shared
     /// 免责声明确认状态：未确认前主界面在模糊层下方可见，确认后移除门禁
@@ -16,6 +17,10 @@ struct BeansApp: App {
     @State private var showEasterEgg = false
 
     init() {
+        // 一起听 Store 需要与界面共用同一个 PlayerManager 实例。
+        let player = PlayerManager()
+        _player = StateObject(wrappedValue: player)
+        _listenTogether = StateObject(wrappedValue: ListenTogetherStore(player: player))
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--beans-ui-smoke") {
             UserDefaults.standard.set(true, forKey: "beans.disclaimerAccepted")
@@ -58,6 +63,7 @@ struct BeansApp: App {
                 RootView()
                     .environmentObject(auth)
                     .environmentObject(player)
+                    .environmentObject(listenTogether)
                     .environmentObject(theme)
                     .environmentObject(favorites)
                 // 未确认前展示首次使用引导页（分页引导 + 免责确认）
@@ -88,11 +94,35 @@ struct BeansApp: App {
             .task {
                 // 直接进入主页，首帧完成后恢复已安装用户的数据与媒体偏好。
                 await Task.yield()
+                // 一起听：启动时若已登录，尝试恢复服务端仍在进行的房间。
+                await listenTogether.accountDidChange(hasCredentials: auth.isLoggedIn)
                 player.restorePersistedPlayMode()
                 player.resumePersistedPlaybackIfEnabled()
                 FontManager.reinstallIfNeeded()
                 await DeviceReporter.shared.reportLaunch()
                 await RemoteControlStore.shared.refreshIfNeeded(force: true)
+            }
+            .onChange(of: auth.isLoggedIn) { _, isLoggedIn in
+                Task {
+                    await listenTogether.accountDidChange(hasCredentials: isLoggedIn)
+                }
+            }
+            .alert(
+                "一起听",
+                isPresented: Binding(
+                    get: { listenTogether.noticeMessage != nil },
+                    set: { presented in
+                        if !presented {
+                            listenTogether.dismissNotice()
+                        }
+                    }
+                )
+            ) {
+                Button("好", role: .cancel) {
+                    listenTogether.dismissNotice()
+                }
+            } message: {
+                Text(listenTogether.noticeMessage ?? "状态已更新")
             }
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active else { return }

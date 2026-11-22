@@ -20,6 +20,7 @@ struct PlayerView: View {
     @State private var showLyrics = false
     @AppStorage("beans.player.lastLyricsPage") private var lastLyricsPage = false
     @State private var showQueue = false
+    @State private var showListenTogether = false
     @State private var showAppleMusicQueue = false
     @State private var showVinylQueue = false
     @State private var showSleepTimer = false
@@ -977,6 +978,9 @@ struct PlayerView: View {
                 )
             }
         }
+        .sheet(isPresented: $showListenTogether) {
+            ListenTogetherView()
+        }
         .sheet(isPresented: $showOfficialPlaylistPicker) {
             OfficialPlaylistPickerSheet(
                 source: favoriteCandidate?.source ?? .netease,
@@ -1067,6 +1071,9 @@ struct PlayerView: View {
         .confirmationDialog("更多操作", isPresented: $showNativeMoreActions, titleVisibility: .visible) {
             Button("定时关闭") {
                 showSleepTimer = true
+            }
+            Button("一起听") {
+                showListenTogether = true
             }
             Button("添加到本地歌单") {
                 showAddToLocalPlaylist = true
@@ -1407,6 +1414,7 @@ struct PlayerView: View {
                     }
                     Divider()
                     Button("定时关闭") { showSleepTimer = true }
+                    Button("一起听") { showListenTogether = true }
                     Button("添加到本地歌单") { showAddToLocalPlaylist = true }
                     if downloadFeatureUnlocked {
                         Button("下载歌曲") { showDownloadPicker = true }
@@ -1506,6 +1514,7 @@ struct PlayerView: View {
 
                 Menu {
                     Button("定时关闭") { showSleepTimer = true }
+                    Button("一起听") { showListenTogether = true }
                     Button("添加到本地歌单") { showAddToLocalPlaylist = true }
                     customCoverActions
                     if downloadFeatureUnlocked {
@@ -1890,6 +1899,7 @@ struct PlayerView: View {
 
                 Menu {
                     Button("定时关闭") { showSleepTimer = true }
+                    Button("一起听") { showListenTogether = true }
                     Button("添加到本地歌单") { showAddToLocalPlaylist = true }
                     if downloadFeatureUnlocked {
                         Button("下载歌曲") { showDownloadPicker = true }
@@ -1947,6 +1957,10 @@ struct PlayerView: View {
             moreActionRow("定时关闭", systemName: player.sleepTimerRemaining > 0 ? "moon.zzz.fill" : "moon.zzz") {
                 showMoreActions = false
                 showSleepTimer = true
+            }
+            moreActionRow("一起听", systemName: "person.2.wave.2") {
+                showMoreActions = false
+                showListenTogether = true
             }
             moreActionRow("添加到本地歌单", systemName: "text.badge.plus") {
                 showMoreActions = false
@@ -2176,6 +2190,7 @@ struct PlayerView: View {
 
             Menu {
                 Button("定时关闭") { showSleepTimer = true }
+                Button("一起听") { showListenTogether = true }
                 Button("添加到本地歌单") { showAddToLocalPlaylist = true }
                 customCoverActions
                 if downloadFeatureUnlocked {
@@ -2351,6 +2366,7 @@ struct PlayerView: View {
 
             Menu {
                 Button("定时关闭") { showSleepTimer = true }
+                Button("一起听") { showListenTogether = true }
                 Button("添加到本地歌单") { showAddToLocalPlaylist = true }
                 customCoverActions
                 if downloadFeatureUnlocked {

@@ -41,7 +41,7 @@ final class NetEaseAPI {
 
     // MARK: - 请求
 
-    fileprivate func request(_ uri: String, payload: [String: Any], crypto: String) async throws -> [String: Any] {
+    func request(_ uri: String, payload: [String: Any], crypto: String) async throws -> [String: Any] {
         let url: URL
         let form: String
         var request: URLRequest

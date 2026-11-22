@@ -1,0 +1,85 @@
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* ios18-compat Build Unsigned IPA · 45022449772
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* build-ipa (ID 137208145438)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Install XcodeGen
+  ✓ Resolve version from project.yml
+  ✓ Generate Xcode project
+  * Verify Bilibili login and playback parsing
+  * Build (unsigned)
+  * Test CiliCili upstream and Beans integration regressions
+  * Export simulator screenshots
+  * Upload build and test diagnostics
+  * Verify version in built app
+  * Package IPA
+  * Package corresponding GPL source
+  * Upload corresponding source
+  * Upload IPA
+  * Post Checkout
+Refreshing run status every 30 seconds. Press Ctrl+C to quit.
+
+* ios18-compat Build Unsigned IPA · 45022449772
+Triggered via workflow_dispatch less than a minute ago
+
+JOBS
+* build-ipa (ID 137208145438)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Install XcodeGen
+  ✓ Resolve version from project.yml
+  ✓ Generate Xcode project
+  ✓ Verify Bilibili login and playback parsing
+  * Build (unsigned)
+  * Test CiliCili upstream and Beans integration regressions
+  * Export simulator screenshots
+  * Upload build and test diagnostics
+  * Verify version in built app
+  * Package IPA
+  * Package corresponding GPL source
+  * Upload corresponding source
+  * Upload IPA
+  * Post Checkout
+X ios18-compat Build Unsigned IPA · 45022449772
+Triggered via workflow_dispatch about 1 minute ago
+
+JOBS
+X build-ipa in 1m21s (ID 137208145438)
+  ✓ Set up job
+  ✓ Checkout
+  ✓ Install XcodeGen
+  ✓ Resolve version from project.yml
+  ✓ Generate Xcode project
+  ✓ Verify Bilibili login and playback parsing
+  X Build (unsigned)
+  - Test CiliCili upstream and Beans integration regressions
+  ✓ Export simulator screenshots
+  ✓ Upload build and test diagnostics
+  - Verify version in built app
+  - Package IPA
+  - Package corresponding GPL source
+  - Upload corresponding source
+  - Upload IPA
+  ✓ Post Checkout
+  ✓ Complete job
+
+ANNOTATIONS
+! Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+build-ipa: .github#3
+
+X Process completed with exit code 65.
+build-ipa: .github#1479
+
+- Building 2.0.3 (build 2)
+build-ipa: .github#17
+
+! Calling HOMEBREW_NO_REQUIRE_TAP_TRUST is deprecated! Use `brew trust` for each non-official tap, formula, cask or command instead.
+build-ipa: .github#5
+
+- Due to capacity constraints, jobs targeting macOS arm64 runners may experience longer queue times.
+build-ipa: .github#1
+

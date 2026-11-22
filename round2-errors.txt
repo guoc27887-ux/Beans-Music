@@ -1,0 +1,9 @@
+Beans/LockScreenArtwork.swift:12:44: error: 'MPMediaItemAnimatedArtwork' is only available in iOS 26.0 or newer
+Beans/LockScreenArtwork.swift:16:46: error: 'MPMediaItemAnimatedArtwork' is only available in iOS 26.0 or newer
+Beans/LockScreenArtwork.swift:23:43: error: 'supportedAnimatedArtworkKeys' is only available in iOS 26.0 or newer
+Beans/LockScreenArtwork.swift:26:83: error: 'MPMediaItemAnimatedArtwork' is only available in iOS 26.0 or newer
+Beans/LockScreenArtwork.swift:30:38: error: 'MPMediaItemAnimatedArtwork' is only available in iOS 26.0 or newer
+Beans/LockScreenArtwork.swift:31:38: error: 'MPNowPlayingInfoProperty1x1AnimatedArtwork' is only available in iOS 26.0 or newer
+Beans/LockScreenArtwork.swift:32:38: error: 'MPNowPlayingInfoProperty3x4AnimatedArtwork' is only available in iOS 26.0 or newer
+Beans/LockScreenArtwork.swift:34:35: error: 'MPMediaItemAnimatedArtwork' is only available in iOS 26.0 or newer
+Beans/LockScreenArtwork.swift:34:35: error: 'init(artworkID:previewImageRequestHandler:videoAssetFileURLRequestHandler:)' is only available in iOS 26.0 or newer

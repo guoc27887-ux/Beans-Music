@@ -1,0 +1,712 @@
+build-ipa	Build (unsigned)	﻿2026-11-22T12:28:49.7519610Z ##[group]Run set -o pipefail
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7519980Z ^[[36;1mset -o pipefail^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7520230Z ^[[36;1mVER=$(cat version.txt)^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7520550Z ^[[36;1mBUILD=$(cat build.txt)^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7520960Z ^[[36;1mecho "Building with MARKETING_VERSION=$VER CURRENT_PROJECT_VERSION=$BUILD"^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7521530Z ^[[36;1mecho "BUILD_NUMBER=$BUILD" >> "$GITHUB_ENV"^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7521990Z ^[[36;1mecho "VERSION_LABEL=$VER" >> "$GITHUB_ENV"^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7522370Z ^[[36;1mecho "VERSION_TAG=v$VER" >> "$GITHUB_ENV"^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7522800Z ^[[36;1mxcodebuild \^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7523260Z ^[[36;1m  -project Beans.xcodeproj \^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7523660Z ^[[36;1m  -scheme Beans \^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7523980Z ^[[36;1m  -configuration Release \^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7524360Z ^[[36;1m  -sdk iphoneos \^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7524670Z ^[[36;1m  -derivedDataPath build \^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7525230Z ^[[36;1m  MARKETING_VERSION="$VER" \^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7525770Z ^[[36;1m  CURRENT_PROJECT_VERSION="$BUILD" \^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7526150Z ^[[36;1m  CODE_SIGNING_ALLOWED=NO \^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7526510Z ^[[36;1m  CODE_SIGNING_REQUIRED=NO \^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7526840Z ^[[36;1m  CODE_SIGN_IDENTITY="" \^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7527180Z ^[[36;1m  build 2>&1 | tee xcodebuild.log^[[0m
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7572370Z shell: /bin/bash -e {0}
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.7572710Z ##[endgroup]
+build-ipa	Build (unsigned)	2026-11-22T12:28:49.8124560Z Building with MARKETING_VERSION=2.0.3 CURRENT_PROJECT_VERSION=2
+build-ipa	Build (unsigned)	2026-11-22T12:28:51.5314950Z Command line invocation:
+build-ipa	Build (unsigned)	2026-11-22T12:28:51.5372100Z     /Applications/Xcode_26.6.app/Contents/Developer/usr/bin/xcodebuild -project Beans.xcodeproj -scheme Beans -configuration Release -sdk iphoneos -derivedDataPath build MARKETING_VERSION=2.0.3 CURRENT_PROJECT_VERSION=2 CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= build
+build-ipa	Build (unsigned)	2026-11-22T12:28:51.5376010Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:51.5376390Z Build settings from command line:
+build-ipa	Build (unsigned)	2026-11-22T12:28:51.5377580Z     CODE_SIGN_IDENTITY = 
+build-ipa	Build (unsigned)	2026-11-22T12:28:51.5378580Z     CODE_SIGNING_ALLOWED = NO
+build-ipa	Build (unsigned)	2026-11-22T12:28:51.5379410Z     CODE_SIGNING_REQUIRED = NO
+build-ipa	Build (unsigned)	2026-11-22T12:28:51.5380380Z     CURRENT_PROJECT_VERSION = 2
+build-ipa	Build (unsigned)	2026-11-22T12:28:51.5381210Z     MARKETING_VERSION = 2.0.3
+build-ipa	Build (unsigned)	2026-11-22T12:28:51.5382160Z     SDKROOT = iphoneos26.5
+build-ipa	Build (unsigned)	2026-11-22T12:28:51.5382820Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5090740Z --- xcodebuild: WARNING: Using the first of multiple matching destinations:
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5093750Z { platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5098040Z { platform:macOS, arch:arm64, variant:Designed for [iPad,iPhone], id:2406c91d1565f5875bd722877a5d767ae50411ca, name:My Mac }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5137400Z { platform:iOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5143460Z { platform:visionOS Simulator, arch:arm64, variant:Designed for [iPad,iPhone], id:9C68DD66-0BB9-4C08-B7BF-9A91F7FA547B, OS:26.2, name:Apple Vision Pro }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5146510Z { platform:visionOS Simulator, arch:arm64, variant:Designed for [iPad,iPhone], id:3D06C66B-45C9-4FD2-B9AF-D85A173707A6, OS:26.4.1, name:Apple Vision Pro }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5147430Z { platform:visionOS Simulator, arch:arm64, variant:Designed for [iPad,iPhone], id:6023AC0F-9C55-4618-95B5-F1C3C17A5E60, OS:26.5, name:Apple Vision Pro }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5148270Z { platform:iOS Simulator, arch:arm64, id:6D181590-D19F-48F6-AC2F-8C98F5F77D34, OS:26.2, name:iPad (A16) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5149400Z { platform:iOS Simulator, arch:x86_64, id:6D181590-D19F-48F6-AC2F-8C98F5F77D34, OS:26.2, name:iPad (A16) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5149990Z { platform:iOS Simulator, arch:arm64, id:BB9BCE9B-E401-40A3-A0C1-F8B13C50F459, OS:26.4.1, name:iPad (A16) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5150580Z { platform:iOS Simulator, arch:x86_64, id:BB9BCE9B-E401-40A3-A0C1-F8B13C50F459, OS:26.4.1, name:iPad (A16) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5260180Z { platform:iOS Simulator, arch:arm64, id:2C358D2A-D903-489E-9517-1EE4B2273E04, OS:26.5, name:iPad (A16) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5261320Z { platform:iOS Simulator, arch:x86_64, id:2C358D2A-D903-489E-9517-1EE4B2273E04, OS:26.5, name:iPad (A16) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5261930Z { platform:iOS Simulator, arch:arm64, id:ABF743D3-A9E9-4317-BB4C-DDCFB58C38DE, OS:26.2, name:iPad Air 11-inch (M3) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5262550Z { platform:iOS Simulator, arch:x86_64, id:ABF743D3-A9E9-4317-BB4C-DDCFB58C38DE, OS:26.2, name:iPad Air 11-inch (M3) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5263160Z { platform:iOS Simulator, arch:arm64, id:0BA81479-0013-4163-9C1B-8657B690465D, OS:26.4.1, name:iPad Air 11-inch (M4) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5263770Z { platform:iOS Simulator, arch:x86_64, id:0BA81479-0013-4163-9C1B-8657B690465D, OS:26.4.1, name:iPad Air 11-inch (M4) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5264410Z { platform:iOS Simulator, arch:arm64, id:B93AC885-30EF-40D3-911E-AFBFE471286C, OS:26.5, name:iPad Air 11-inch (M4) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5265180Z { platform:iOS Simulator, arch:x86_64, id:B93AC885-30EF-40D3-911E-AFBFE471286C, OS:26.5, name:iPad Air 11-inch (M4) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5265850Z { platform:iOS Simulator, arch:arm64, id:2DA453A7-F093-478D-A736-C479712036A4, OS:26.2, name:iPad Air 13-inch (M3) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5266510Z { platform:iOS Simulator, arch:x86_64, id:2DA453A7-F093-478D-A736-C479712036A4, OS:26.2, name:iPad Air 13-inch (M3) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5267270Z { platform:iOS Simulator, arch:arm64, id:D443F0B4-5BAC-4C52-B5C9-C4150281B9AF, OS:26.4.1, name:iPad Air 13-inch (M4) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5267980Z { platform:iOS Simulator, arch:x86_64, id:D443F0B4-5BAC-4C52-B5C9-C4150281B9AF, OS:26.4.1, name:iPad Air 13-inch (M4) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5268660Z { platform:iOS Simulator, arch:arm64, id:A3140D84-3F55-44CB-A4E0-BB0E256CBD79, OS:26.5, name:iPad Air 13-inch (M4) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5269250Z { platform:iOS Simulator, arch:x86_64, id:A3140D84-3F55-44CB-A4E0-BB0E256CBD79, OS:26.5, name:iPad Air 13-inch (M4) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5269970Z { platform:iOS Simulator, arch:arm64, id:EEF7FA09-1BF7-4CA0-A381-5F0A883FF632, OS:26.2, name:iPad Pro 11-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5270700Z { platform:iOS Simulator, arch:x86_64, id:EEF7FA09-1BF7-4CA0-A381-5F0A883FF632, OS:26.2, name:iPad Pro 11-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5271580Z { platform:iOS Simulator, arch:arm64, id:01CB0E86-839C-47B2-B57E-9431B8B2C21C, OS:26.4.1, name:iPad Pro 11-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5272440Z { platform:iOS Simulator, arch:x86_64, id:01CB0E86-839C-47B2-B57E-9431B8B2C21C, OS:26.4.1, name:iPad Pro 11-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5273170Z { platform:iOS Simulator, arch:arm64, id:E6D22F64-35F4-4792-92E9-462C0B7C23BA, OS:26.5, name:iPad Pro 11-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5274150Z { platform:iOS Simulator, arch:x86_64, id:E6D22F64-35F4-4792-92E9-462C0B7C23BA, OS:26.5, name:iPad Pro 11-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5274870Z { platform:iOS Simulator, arch:arm64, id:70A7952C-F289-459B-8875-D154D551E8CB, OS:26.2, name:iPad Pro 13-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5275540Z { platform:iOS Simulator, arch:x86_64, id:70A7952C-F289-459B-8875-D154D551E8CB, OS:26.2, name:iPad Pro 13-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5276330Z { platform:iOS Simulator, arch:arm64, id:2239CD22-6BE3-4D11-B927-9245F8915748, OS:26.4.1, name:iPad Pro 13-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5277060Z { platform:iOS Simulator, arch:x86_64, id:2239CD22-6BE3-4D11-B927-9245F8915748, OS:26.4.1, name:iPad Pro 13-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5277790Z { platform:iOS Simulator, arch:arm64, id:2A020491-3EBC-4783-8622-F8314CC00294, OS:26.5, name:iPad Pro 13-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5278490Z { platform:iOS Simulator, arch:x86_64, id:2A020491-3EBC-4783-8622-F8314CC00294, OS:26.5, name:iPad Pro 13-inch (M5) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5279250Z { platform:iOS Simulator, arch:arm64, id:706151BA-6C80-4F5B-97B9-6326F6122EB2, OS:26.2, name:iPad mini (A17 Pro) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5280030Z { platform:iOS Simulator, arch:x86_64, id:706151BA-6C80-4F5B-97B9-6326F6122EB2, OS:26.2, name:iPad mini (A17 Pro) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5280960Z { platform:iOS Simulator, arch:arm64, id:518E4C9C-4259-4885-AA50-B803C3DE2D05, OS:26.4.1, name:iPad mini (A17 Pro) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5281890Z { platform:iOS Simulator, arch:x86_64, id:518E4C9C-4259-4885-AA50-B803C3DE2D05, OS:26.4.1, name:iPad mini (A17 Pro) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5282490Z { platform:iOS Simulator, arch:arm64, id:BB3AAE9A-1B8F-4B6F-B536-0744287562C8, OS:26.5, name:iPad mini (A17 Pro) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5283200Z { platform:iOS Simulator, arch:x86_64, id:BB3AAE9A-1B8F-4B6F-B536-0744287562C8, OS:26.5, name:iPad mini (A17 Pro) }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5283840Z { platform:iOS Simulator, arch:arm64, id:16AFAE62-8F15-4D89-8041-9A6510AE4913, OS:26.2, name:iPhone 16e }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5284400Z { platform:iOS Simulator, arch:x86_64, id:16AFAE62-8F15-4D89-8041-9A6510AE4913, OS:26.2, name:iPhone 16e }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5285000Z { platform:iOS Simulator, arch:arm64, id:44BD2F18-416F-4F70-B2C2-BE4EBA0C2F50, OS:26.2, name:iPhone 17 }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5285690Z { platform:iOS Simulator, arch:x86_64, id:44BD2F18-416F-4F70-B2C2-BE4EBA0C2F50, OS:26.2, name:iPhone 17 }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5286380Z { platform:iOS Simulator, arch:arm64, id:AC5CE080-DB21-4BF7-9D4E-7C217DE28A05, OS:26.4.1, name:iPhone 17 }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5287040Z { platform:iOS Simulator, arch:x86_64, id:AC5CE080-DB21-4BF7-9D4E-7C217DE28A05, OS:26.4.1, name:iPhone 17 }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5287820Z { platform:iOS Simulator, arch:arm64, id:8EBAA496-5654-45BF-897F-3C4FD73935F1, OS:26.5, name:iPhone 17 }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5288550Z { platform:iOS Simulator, arch:x86_64, id:8EBAA496-5654-45BF-897F-3C4FD73935F1, OS:26.5, name:iPhone 17 }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5289290Z { platform:iOS Simulator, arch:arm64, id:EED6FB0A-E273-43C6-B5DE-3DF739543042, OS:26.2, name:iPhone 17 Pro }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5290030Z { platform:iOS Simulator, arch:x86_64, id:EED6FB0A-E273-43C6-B5DE-3DF739543042, OS:26.2, name:iPhone 17 Pro }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5290740Z { platform:iOS Simulator, arch:arm64, id:27012C89-9706-4CDE-88BB-4B380B6C743A, OS:26.4.1, name:iPhone 17 Pro }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5291520Z { platform:iOS Simulator, arch:x86_64, id:27012C89-9706-4CDE-88BB-4B380B6C743A, OS:26.4.1, name:iPhone 17 Pro }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5292190Z { platform:iOS Simulator, arch:arm64, id:6478AFFB-AE17-412A-A1E5-51BCFFD300B6, OS:26.5, name:iPhone 17 Pro }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5292960Z { platform:iOS Simulator, arch:x86_64, id:6478AFFB-AE17-412A-A1E5-51BCFFD300B6, OS:26.5, name:iPhone 17 Pro }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5293650Z { platform:iOS Simulator, arch:arm64, id:0BF273CD-70D1-4646-BE79-A0E7EF224D18, OS:26.2, name:iPhone 17 Pro Max }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5294420Z { platform:iOS Simulator, arch:x86_64, id:0BF273CD-70D1-4646-BE79-A0E7EF224D18, OS:26.2, name:iPhone 17 Pro Max }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5295470Z { platform:iOS Simulator, arch:arm64, id:1F8E0003-51CF-4174-9E6D-318240CEC150, OS:26.4.1, name:iPhone 17 Pro Max }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5296200Z { platform:iOS Simulator, arch:x86_64, id:1F8E0003-51CF-4174-9E6D-318240CEC150, OS:26.4.1, name:iPhone 17 Pro Max }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5296850Z { platform:iOS Simulator, arch:arm64, id:F90353E4-F95D-488C-9F4E-B43F74E385F2, OS:26.5, name:iPhone 17 Pro Max }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5300320Z { platform:iOS Simulator, arch:x86_64, id:F90353E4-F95D-488C-9F4E-B43F74E385F2, OS:26.5, name:iPhone 17 Pro Max }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5301260Z { platform:iOS Simulator, arch:arm64, id:43DAE57B-B4CA-4DCA-A549-1B77CCB00A5C, OS:26.4.1, name:iPhone 17e }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5302040Z { platform:iOS Simulator, arch:x86_64, id:43DAE57B-B4CA-4DCA-A549-1B77CCB00A5C, OS:26.4.1, name:iPhone 17e }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5302920Z { platform:iOS Simulator, arch:arm64, id:229240FC-DED4-405A-8908-553295E30D59, OS:26.5, name:iPhone 17e }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5307020Z { platform:iOS Simulator, arch:x86_64, id:229240FC-DED4-405A-8908-553295E30D59, OS:26.5, name:iPhone 17e }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5307660Z { platform:iOS Simulator, arch:arm64, id:80B56851-B786-47DE-8EE4-83ACFC3CD092, OS:26.2, name:iPhone Air }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5308420Z { platform:iOS Simulator, arch:x86_64, id:80B56851-B786-47DE-8EE4-83ACFC3CD092, OS:26.2, name:iPhone Air }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5310290Z { platform:iOS Simulator, arch:arm64, id:0D8D9D1E-9F70-4295-B4D0-A00F03A97002, OS:26.4.1, name:iPhone Air }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5310940Z { platform:iOS Simulator, arch:x86_64, id:0D8D9D1E-9F70-4295-B4D0-A00F03A97002, OS:26.4.1, name:iPhone Air }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5312750Z { platform:iOS Simulator, arch:arm64, id:CE12A219-9F8C-4450-97EA-8C58715BECFC, OS:26.5, name:iPhone Air }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5313450Z { platform:iOS Simulator, arch:x86_64, id:CE12A219-9F8C-4450-97EA-8C58715BECFC, OS:26.5, name:iPhone Air }
+build-ipa	Build (unsigned)	2026-11-22T12:28:55.5330260Z note: Using codesigning identity override: 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.2134670Z ComputePackagePrebuildTargetDependencyGraph
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.4421240Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.4441030Z Prepare packages
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.4441370Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.4461520Z CreateBuildRequest
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.4461710Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.4462030Z SendProjectDescription
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.4786450Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.4787390Z CreateBuildOperation
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.4851500Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.4873950Z ComputeTargetDependencyGraph
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5125400Z note: Building targets in dependency order
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5128850Z note: Target dependency graph (3 targets)
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5130130Z     Target 'Beans' in project 'Beans'
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5133470Z         ➜ Explicit dependency on target 'CiliCiliKit' in project 'Beans'
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5135150Z         ➜ Explicit dependency on target 'BeansLiveActivity' in project 'Beans'
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5136210Z     Target 'BeansLiveActivity' in project 'Beans' (no dependencies)
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5137140Z     Target 'CiliCiliKit' in project 'Beans' (no dependencies)
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5137560Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5137820Z GatherProvisioningInputs
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5138070Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5170810Z CreateBuildDescription
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5722060Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.5723280Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.8025780Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.8028500Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -x c -c /dev/null
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.8037170Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.8038240Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -x objective-c -c /dev/null
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.8040640Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.8042340Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -x c -c /dev/null
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.8043220Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:56.8043860Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/runner/work/Beans-Music/Beans-Music/Beans/Assets.xcassets
+build-ipa	Build (unsigned)	2026-11-22T12:28:59.5815230Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:59.5819750Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+build-ipa	Build (unsigned)	2026-11-22T12:28:59.5821760Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:59.5822520Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+build-ipa	Build (unsigned)	2026-11-22T12:28:59.5902840Z 
+build-ipa	Build (unsigned)	2026-11-22T12:28:59.7090100Z Build description signature: 99e93901c62d26f92d0f09f0da49893c
+build-ipa	Build (unsigned)	2026-11-22T12:28:59.7192250Z Build description path: /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/XCBuildData/99e93901c62d26f92d0f09f0da49893c.xcbuilddata
+build-ipa	Build (unsigned)	2026-11-22T12:28:59.8032150Z ClangStatCache /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk /Users/runner/work/Beans-Music/Beans-Music/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache
+build-ipa	Build (unsigned)	2026-11-22T12:28:59.8136040Z     cd /Users/runner/work/Beans-Music/Beans-Music/Beans.xcodeproj
+build-ipa	Build (unsigned)	2026-11-22T12:28:59.8242870Z     /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -o /Users/runner/work/Beans-Music/Beans-Music/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5670120Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5722060Z CreateBuildDirectory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5723270Z     cd /Users/runner/work/Beans-Music/Beans-Music/Beans.xcodeproj
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5725700Z     builtin-create-build-directory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5726130Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5726430Z CreateBuildDirectory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5727050Z     cd /Users/runner/work/Beans-Music/Beans-Music/Beans.xcodeproj
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5727600Z     builtin-create-build-directory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5728370Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5728680Z CreateBuildDirectory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5729260Z     cd /Users/runner/work/Beans-Music/Beans-Music/Beans.xcodeproj
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5730300Z     builtin-create-build-directory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5730790Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5732210Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans-12292459301872965ef014a638a098ac-VFS-iphoneos/all-product-headers.yaml
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5733100Z     cd /Users/runner/work/Beans-Music/Beans-Music/Beans.xcodeproj
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5733850Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans-12292459301872965ef014a638a098ac-VFS-iphoneos/all-product-headers.yaml
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5734460Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5734810Z CreateBuildDirectory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5742880Z     cd /Users/runner/work/Beans-Music/Beans-Music/Beans.xcodeproj
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5743760Z     builtin-create-build-directory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5744270Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5744610Z CreateBuildDirectory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5745160Z     cd /Users/runner/work/Beans-Music/Beans-Music/Beans.xcodeproj
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5745820Z     builtin-create-build-directory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5746290Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5746730Z CreateBuildDirectory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5747330Z     cd /Users/runner/work/Beans-Music/Beans-Music/Beans.xcodeproj
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5748200Z     builtin-create-build-directory /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5748790Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5749380Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/module.modulemap (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5751000Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5751600Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/module.modulemap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5752130Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5752760Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/empty-CiliCiliKit.plist (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5753560Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5754170Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/empty-CiliCiliKit.plist
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5754700Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5755410Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit_const_extract_protocols.json (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5756640Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5757360Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit_const_extract_protocols.json
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5758000Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5758660Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit.SwiftFileList (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5759690Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5760460Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit.SwiftFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5761040Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5761740Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit.SwiftConstValuesFileList (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5762690Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5763390Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit.SwiftConstValuesFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5764300Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5764960Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit.LinkFileList (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5766070Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5766770Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit.LinkFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5767350Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5768110Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit-OutputFileMap.json (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5769060Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5769840Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit-OutputFileMap.json
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5770520Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5771290Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5772530Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5773460Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5779440Z '-std=gnu11' -fmodules -gmodules '-fmodules-cache-path=/Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex' '-fmodule-name=CiliCiliKit' -fpascal-strings -Os -fno-common -g -iquote /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-generated-files.hmap -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-own-target-headers.hmap -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-all-non-framework-target-headers.hmap -ivfsoverlay /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans-12292459301872965ef014a638a098ac-VFS-iphoneos/all-product-headers.yaml -iquote /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-project-headers.hmap -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/include -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/DerivedSources-normal/arm64 -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/DerivedSources/arm64 -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/DerivedSources -F/Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5786300Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5787110Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/DerivedSources/CiliCiliKit_vers.c (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5787970Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5788650Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/DerivedSources/CiliCiliKit_vers.c
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5789520Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5790190Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit.hmap (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5791010Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5791580Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5792070Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5792740Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit.DependencyStaticMetadataFileList (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5793600Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5794590Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit.DependencyStaticMetadataFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5795270Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5795950Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit.DependencyMetadataFileList (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5797470Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5798940Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit.DependencyMetadataFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5799560Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5800190Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-project-headers.hmap (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5801040Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5801700Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-project-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5802350Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5802990Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-own-target-headers.hmap (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5803840Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5804530Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-own-target-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5805110Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5805740Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-generated-files.hmap (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5806530Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5807170Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-generated-files.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5807710Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5808370Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-all-target-headers.hmap (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5809170Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5809850Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-all-target-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5810400Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5811070Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-all-non-framework-target-headers.hmap (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5812420Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5813150Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-all-non-framework-target-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5813760Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5814700Z Copy /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/CiliCiliKit.framework/Modules/module.modulemap /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/module.modulemap (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5815800Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5817100Z     builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/module.modulemap /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/CiliCiliKit.framework/Modules
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5818470Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5818900Z MkDir /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/CiliCiliKit.framework/Headers (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5819550Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5820180Z     /bin/mkdir -p /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/CiliCiliKit.framework/Headers
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5820580Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5821050Z MkDir /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/CiliCiliKit.framework (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5821700Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5822210Z     /bin/mkdir -p /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/CiliCiliKit.framework
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5822660Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5823450Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity_const_extract_protocols.json (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5824520Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5825580Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity_const_extract_protocols.json
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5826310Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5827020Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity.SwiftFileList (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5828150Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5828850Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity.SwiftFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5829480Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5830280Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity.SwiftConstValuesFileList (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5831650Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5832450Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity.SwiftConstValuesFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5833330Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5834040Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity.LinkFileList (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5834950Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5835630Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity.LinkFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5836460Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5837260Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity-OutputFileMap.json (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5838150Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5839460Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity-OutputFileMap.json
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5840330Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5841620Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity.hmap (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5852100Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5852860Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5854140Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5854960Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity.DependencyStaticMetadataFileList (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5856390Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5857100Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity.DependencyStaticMetadataFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5857830Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5858610Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity.DependencyMetadataFileList (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5859640Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5860380Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity.DependencyMetadataFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5861190Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5862110Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-project-headers.hmap (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5863020Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5863710Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-project-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5864290Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5865010Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-own-target-headers.hmap (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5866040Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5867020Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-own-target-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5867710Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5868640Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-generated-files.hmap (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5869570Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5870350Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-generated-files.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5871080Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5871780Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-all-target-headers.hmap (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5872650Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5873460Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-all-target-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5874360Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5875140Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-all-non-framework-target-headers.hmap (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5876150Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5877100Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-all-non-framework-target-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5877840Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5878380Z MkDir /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/BeansLiveActivity.appex (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5879210Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5879770Z     /bin/mkdir -p /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/BeansLiveActivity.appex
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5880150Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5880930Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/e6072d4f65d7061329687fe24e3d63a7-common-args.resp (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5881930Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5882640Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/e6072d4f65d7061329687fe24e3d63a7-common-args.resp
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5888970Z '-std=gnu11' -fobjc-arc -fobjc-weak -fmodules -gmodules '-fmodules-cache-path=/Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex' -fpascal-strings -Os -fno-common '-DNS_BLOCK_ASSERTIONS=1' '-DOBJC_OLD_DISPATCH_PROTOTYPES=0' -g '-fvisibility=hidden' -iquote /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-generated-files.hmap -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-own-target-headers.hmap -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-all-non-framework-target-headers.hmap -ivfsoverlay /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans-12292459301872965ef014a638a098ac-VFS-iphoneos/all-product-headers.yaml -iquote /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-project-headers.hmap -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/include -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/DerivedSources-normal/arm64 -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/DerivedSources/arm64 -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/DerivedSources -F/Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5909620Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5910280Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/Beans_const_extract_protocols.json (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5911490Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5912280Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/Beans_const_extract_protocols.json
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5912900Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5913540Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/Beans.SwiftFileList (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5925390Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5926170Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/Beans.SwiftFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5926800Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5927540Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/Beans.SwiftConstValuesFileList (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5928390Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5929040Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/Beans.SwiftConstValuesFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5929700Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5930420Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/Beans.LinkFileList (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5931320Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5931980Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/Beans.LinkFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5932510Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5933210Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/Beans-OutputFileMap.json (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5933980Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5934610Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Objects-normal/arm64/Beans-OutputFileMap.json
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5935490Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5936070Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans.hmap (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5936750Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5937290Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5938050Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5938710Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans.DependencyStaticMetadataFileList (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5939520Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5940140Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans.DependencyStaticMetadataFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5940670Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5941270Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans.DependencyMetadataFileList (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5942010Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5942610Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans.DependencyMetadataFileList
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5943130Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5943760Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-project-headers.hmap (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5944520Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5945380Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-project-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5945960Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5966450Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-own-target-headers.hmap (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5967390Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5968080Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-own-target-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5968610Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5969160Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-generated-files.hmap (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5969890Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5970570Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-generated-files.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5971110Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5972410Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-all-target-headers.hmap (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5973190Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5973780Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-all-target-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5975270Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5976620Z WriteAuxiliaryFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-all-non-framework-target-headers.hmap (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5977460Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5978230Z     write-file /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans.build/Beans-all-non-framework-target-headers.hmap
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5978830Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5979220Z MkDir /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/Beans.app/PlugIns (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5979850Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5981330Z     /bin/mkdir -p /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/Beans.app/PlugIns
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5981760Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5982220Z MkDir /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/Beans.app/Frameworks (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5982840Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5983400Z     /bin/mkdir -p /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/Beans.app/Frameworks
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5983780Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5984270Z MkDir /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/Beans.app (in target 'Beans' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5984780Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5985280Z     /bin/mkdir -p /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/Beans.app
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5985810Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5986900Z ProcessInfoPlistFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/CiliCiliKit.framework/Info.plist /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/empty-CiliCiliKit.plist (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5988040Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5990060Z     builtin-infoPlistUtility /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/empty-CiliCiliKit.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/CiliCiliKit.framework/Info.plist
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5991570Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5992470Z ProcessInfoPlistFile /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/BeansLiveActivity.appex/Info.plist /Users/runner/work/Beans-Music/Beans-Music/BeansLiveActivity/Info.plist (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5993460Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5994620Z     builtin-infoPlistUtility /Users/runner/work/Beans-Music/Beans-Music/BeansLiveActivity/Info.plist -producttype com.apple.product-type.app-extension -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/BeansLiveActivity.appex/Info.plist
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5995860Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5996190Z SwiftDriver CiliCiliKit normal arm64 com.apple.xcode.tools.swift.compiler (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.5996650Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:01.6022630Z     builtin-SwiftDriver -- /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name CiliCiliKit -O -whole-module-optimization @/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit.SwiftFileList -enable-upcoming-feature StrictConcurrency -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -target arm64-apple-ios18.0 -g -module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos -F /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos -c -num-threads 3 -Xcc -ivfsstatcache -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache -output-file-map /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-generated-files.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-own-target-headers.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans-12292459301872965ef014a638a098ac-VFS-iphoneos/all-product-headers.yaml -Xcc -iquote -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-project-headers.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit-Swift.h -working-directory /Users/runner/work/Beans-Music/Beans-Music -no-emit-module-separately-wmo
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.3555970Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.3658580Z SwiftDriver BeansLiveActivity normal arm64 com.apple.xcode.tools.swift.compiler (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.3757870Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.3871670Z     builtin-SwiftDriver -- /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name BeansLiveActivity -O -whole-module-optimization @/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -target arm64-apple-ios18.0 -g -module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -application-extension -swift-version 5 -I /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos -F /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos -c -num-threads 3 -Xcc -ivfsstatcache -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache -output-file-map /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-generated-files.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-own-target-headers.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans-12292459301872965ef014a638a098ac-VFS-iphoneos/all-product-headers.yaml -Xcc -iquote -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-project-headers.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity-Swift.h -working-directory /Users/runner/work/Beans-Music/Beans-Music -no-emit-module-separately-wmo
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.3973150Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.4074490Z SwiftDriver\ Compilation BeansLiveActivity normal arm64 com.apple.xcode.tools.swift.compiler (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.4174620Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.4296860Z     builtin-Swift-Compilation -- /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name BeansLiveActivity -O -whole-module-optimization @/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -target arm64-apple-ios18.0 -g -module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -application-extension -swift-version 5 -I /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos -F /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos -c -num-threads 3 -Xcc -ivfsstatcache -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache -output-file-map /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-generated-files.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-own-target-headers.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans-12292459301872965ef014a638a098ac-VFS-iphoneos/all-product-headers.yaml -Xcc -iquote -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/BeansLiveActivity-project-headers.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity-Swift.h -working-directory /Users/runner/work/Beans-Music/Beans-Music -no-emit-module-separately-wmo
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.4313930Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.4415040Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stddef-AOMEVXRMHE5F45PMKYACHKJ4N.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.4516010Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.4617400Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/DeveloperToolsSupport-DM6AXY7XWARJBRZ4F66KR149O.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.4718620Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.4820370Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/SwiftShims-7XA05KERQPX7PTI6THXODWD6L.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.4946970Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.5086040Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_SwiftConcurrencyShims-DELPZWAIYNKQQL6XQFOKQVG06.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.5188000Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.5289500Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_float-3RS0DX2SWBA4UJLMM43S7VQGZ.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.5389260Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.5490540Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ptrauth-861YJR26J2FMX7NJBTD694KAB.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.5591170Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.5692410Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdarg-E250H2DAKRYFQK67EFSOJLNXV.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.5813350Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.5914470Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_AvailabilityInternal-ELWY57HFUNRG5XUJ1VJPYQYXG.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.6015680Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.6116930Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ptrcheck-3ARPMC1NDYMTZARDW70GXS3SC.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.6218040Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.6325360Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ActivityKit-4A7BPW9YS82CYR3OE7EQ9MR5K.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.6426530Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.6527840Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdbool-6QKWGDD1BF6UGH2XWJRIFLP7Q.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.6639270Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.6740680Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_DarwinFoundation1-2AMKRA9H5IOQNTPY1ZTJ6CI4S.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.6841900Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.6943130Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ExtensionFoundation-9Y9W76ERSM6V957P1PDYN553G.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.7078450Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.7179740Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_DarwinFoundation2-9U0GJ1BGDBSRV35VCDA89WRGM.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.7280780Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.7381970Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_limits-2Y1SR0W0C54R7D1AVOCN825I4.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.7483040Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.7584100Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_tgmath-6MOKQ7VAH69RY8K4CFYTB2VG8.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.7685560Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.7814930Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdint-D35AI0JKV5SNDTAU5LD3FVUFP.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.7934920Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.8051100Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/sys_types-CP1RJVY8I4RZL0XL44HGBM1UD.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.8180040Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.8181060Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdatomic-4IGATNU58WBR6GFCLH3M96549.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.8282200Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.8388900Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_intrinsics-41RHAEAN0U9O2NIGKNMBNUCXD.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.8491210Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.8625380Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_DarwinFoundation3-4VN5740VAZ896MEMPR9AIXOEZ.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.8729770Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.8838670Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdarg-CQTJU6YN83DRKQMJJ5IKPY7KS.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.8947650Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.9064420Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stddef-73PAO782Z4BJKBEM63IRE8D8L.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.9167830Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.9272320Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_AvailabilityInternal-5JI9OGAMKN01ZC3QMZ71JRIPX.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.9374890Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.9485420Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ptrcheck-57364PMD46ZYRTV2P9MENLY3U.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.9614560Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.9734000Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_float-2U0NAJK3E3ZJWUYFPVKVLF4SV.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.9835310Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:04.9936360Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/DeveloperToolsSupport-PWTREWVWIDWF3WXOBGPSTQ9.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.0037350Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.0151830Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_inttypes-839VD6T72H8XSHBZIPODNA9IV.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.0264330Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.0388260Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_SwiftConcurrencyShims-9O5EMP2C2N6P9N1GXYMTS75Q0.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.0489900Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.0591050Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/SwiftShims-C4R7ZHE9RBRA7ZWKOG2EY5R8A.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.0728780Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.0830110Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Darwin-7C3270PPZVLACDSHUCQ8OQP2W.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.0938160Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.1039220Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_DarwinFoundation1-21X0C2P792XIHLI4UCVFQ8IWR.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.1142860Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.1244200Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdbool-5FPNU4QSZCIXSXOXC45VCLU8J.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.1345400Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.1446810Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/simd-DEA7U1KZ9KJ5DULZ8JHKR4XQS.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.1548060Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.1653580Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_DarwinFoundation2-D1O7CCLZQG4GFRVQ040MIY70W.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.1776420Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.1877660Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_limits-8CF76XMLYIKZWU77JYE8QWTFI.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.1978680Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.2079910Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/sys_types-3LA6GIGKYB8BF96I2WKNHJQAL.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.2198840Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.2300040Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/MachO-Z80IICCLVWWLUR169421TCLP.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.2412950Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.2514300Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ObjectiveC-1JCG7CRSYJY4K335ZJQC1AG8F.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.2626850Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.2728090Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_tgmath-1KGMP4H06XFGQPIVJCGYF1CBT.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.2851050Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.2961840Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ExtensionFoundation-5SX8QKTP053CBX8GBYKJ9MTZ7.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.3077910Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.3179080Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/os_object-AEAW0GLJ0422EJ3Y05PLQ68R5.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.3280730Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.3384120Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdint-AHBM6TKYAYX64HWVP119AR5WG.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.3485120Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.3586620Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ptrauth-7Z3EWID6KW9YLW7G6P558IC6Y.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.3687680Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.3797760Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/os_workgroup-5T4QA8LJVKM7QWNFBJ4U37L3A.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.3898990Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.4005560Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdatomic-1JCMGB3KRAODSB2KOF4JRRXFB.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.4126160Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.4228020Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_DarwinFoundation3-NL0P6FXAPSO7LMJCBK825AYB.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.4329000Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.4440410Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_intrinsics-2PTM61GG41RNCKPCILRMHT3G4.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.4541780Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.4649970Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Dispatch-3I0BBI9A25ZDBV05797GPUSEW.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.4751030Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.4873670Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Spatial-D7TUYEKCWSAYN2NMVZMF9517.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.4981870Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.5105420Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_inttypes-3O6S3FLYUD10ITAD3AHULMPNF.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.5221230Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.5333870Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/XPC-61MKTKVVD52KAR94QXEEP14CZ.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.5436390Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.5538130Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreFoundation-AS3IT761JHC8ANFUJBF05BH2J.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.5648030Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.5750770Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Darwin-56U7P6KWLL8HCY807ITH95S3N.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.5859600Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.5974060Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/simd-474N17MM2K5XD7SH5AGONTAO6.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.8200110Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.8301270Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/os-E2700J216X7AAZPWDMP7V3W81.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.8401030Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.8502370Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CFNetwork-B94N8PIKYUBO42QO315U02DMH.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.8602060Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.8703690Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Security-BX15OFCKO8QQ16H0SSETCY62Y.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.8804210Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.8905690Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/MachO-ACFDG6BOGNQ2K231XZTQS6YAB.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.9006410Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.9107950Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Compression-20PKRTRXONDTT87LPY6XHDV0L.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.9209350Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.9310690Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ObjectiveC-DWYHKXZSLVTPEHMHIQEB8095E.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.9410600Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:05.9511670Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Foundation-3KMF5HIAKN0L2ZTVG6ANID18L.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.3162020Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.3263520Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/zlib-7IRSLAIJSXIGYD1KXF7SGI2WY.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.3369100Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.3482250Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/os_object-6BEUAEHQ15D4PPEXE0M2MOQLP.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.3586640Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.3711690Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreGraphics-1ZXSH45TIIWQ8CX9SR61QBUHT.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.3833590Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.3956930Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Spatial-6L7N8EJXWYV0VJWYMFH77THUP.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.4061160Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.4164550Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/os_workgroup-7ZXFUPZUGCWXXVVSVODXF966C.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.4287820Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.4392750Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreText-2MNHBYC2RHID7VI1UVRTKO5Z8.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.4496560Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.4597970Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Dispatch-324GIU9M9I2D3FP6DYKYHH38T.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.4699330Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.4800640Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ImageIO-3S0M4HOTD2H00LX6SEG3HFW8U.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.4901790Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.5003120Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/dnssd-ETER0OPA4GKCWSWQL7CS9RZOA.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.5104320Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.5205600Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/dnssd-9R23MR556Y3PB0IYAP2NIHYWV.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.5306790Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.5408190Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/XPC-DUGWLZ7WR6SUMG3DL54PJD490.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.5509160Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.5610550Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreFoundation-EBDXCNXD75VYCDQITO6KSOZR5.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.5712770Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.5814040Z SwiftDriver\ Compilation CiliCiliKit normal arm64 com.apple.xcode.tools.swift.compiler (in target 'CiliCiliKit' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.5915600Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.6030910Z     builtin-Swift-Compilation -- /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name CiliCiliKit -O -whole-module-optimization @/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit.SwiftFileList -enable-upcoming-feature StrictConcurrency -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -target arm64-apple-ios18.0 -g -module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos -F /Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos -c -num-threads 3 -Xcc -ivfsstatcache -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache -output-file-map /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-generated-files.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-own-target-headers.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/Beans-12292459301872965ef014a638a098ac-VFS-iphoneos/all-product-headers.yaml -Xcc -iquote -Xcc /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/CiliCiliKit-project-headers.hmap -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/CiliCiliKit.build/Objects-normal/arm64/CiliCiliKit-Swift.h -working-directory /Users/runner/work/Beans-Music/Beans-Music -no-emit-module-separately-wmo
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.6046670Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.6147870Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/os-EUSF527B3HPHHDPECMIR0LWI1.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.6248910Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.6350760Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UserNotifications-8Z4C5Q6KTL26DLCUN6K5CV2SX.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.6452420Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.6553620Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/OSLog-3ZG6PJQ717FC1ET6E0SRB6FWW.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.6676870Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.6799170Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CFNetwork-E8LA9HJR8OCJ1Y2MXR9PX5IVP.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.6903450Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.7027670Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Security-AGN5CYN4KWFLXF99AQ5KQHGFJ.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.7128880Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.7258370Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UniformTypeIdentifiers-5GKJ0W3DWX6TWXC1FUWV2K99V.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.7359560Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.7460750Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreData-81PWIWRF62J9WV59UMIW518ZX.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.7569470Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.7670700Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreGraphics-8ZFXGRXG0P1NYO5UTA2XIR0PT.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.7786790Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.7827830Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Foundation-I0YZJAB78Q4K8N0OBAO3ZU8F.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.8033130Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.8139280Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreSpotlight-2DS0HLYL02Z8XALSYX6N892A6.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.8240330Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.8356470Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/WidgetKit-RCXM40TC9XA0UBOTEH4791UT.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.8457480Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.8558920Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/IOSurface-99SF15QUD57GH9FN712MR0OHP.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.8666680Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.8767760Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/AppIntents-YQINWNSF29OVWZIK68ZOCE29.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.8876780Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.8992640Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/RelevanceKit-1HB3C58FR6OZ6NWHECE7VMEW.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.9098340Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.9211250Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ImageIO-7E1H76GBVDTBBPKXFH25QXCR0.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.9332800Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.9437060Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Accessibility-CS7O0ZLFSONWLFHV2YPJZY4J4.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.9542220Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.9665860Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreAudioTypes-BP12CGZJ2DOSSS9J7N14QSNDA.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.9766560Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.9867910Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/OpenGLES-D7KTY2FR9FW2P76YKZ7SFIQFI.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:06.9973190Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.0074530Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UIUtilities-5RBUCUYBOTQ9C5SQE3914NGQM.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.0184800Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.0285790Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Network-1MFQCPN1NXM0RWXZOC4C5QD14.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.0391960Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.0527270Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/LocalAuthentication-6CXJ68RRFGKZX40WJCHHBMJ37.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.0627210Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.0749240Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreData-DBXT7RWGJKHULEYNHX2FVF18L.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.0752350Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.0859290Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_LocationEssentials-1690W3QYPY6FH2VY0QBKG4AAC.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.0960500Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.1072420Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreMIDI-C3R0DK7HVA6JQ3MAQZBOQAR0Y.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.1183160Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.1290830Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/OSLog-B6TINPE7HWG0CWM45BOU20STY.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.1425010Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.1537600Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreAudio-1QSKO9PBNLFVA6Q03L4FP4ZWZ.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.1653620Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.1755420Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UIUtilities-796MCM60RVXNIYW8WBUVV4Y2U.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.1867710Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.1979230Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/AudioToolbox-1D1FTICU3PSWB4FC848Q9GEUK.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.2088240Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.2213720Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UniformTypeIdentifiers-A65YQUO9XP5C0VPW30235ENNM.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.2319270Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.2426060Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Accessibility-DFQS2L68CZ41JXVLNGACINJMT.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.2552120Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.2667470Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/IOSurface-27AD7UN8TS0YYQGVGB889P7RU.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.2778410Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.2912470Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/AVRouting-2U8MV83YNFZIQAE6VZVOVQWDL.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.3022550Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.3127190Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreTransferable-3K9XAOI85ZAUIBZJ12ZQ5X3G7.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.3228150Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.3357220Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/DataDetection-22FI0HTROGQB85FZRB8HDJ8LR.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.3480620Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.3590900Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Metal-88MKQ2QB53YC3YI0FEZ3F3Q7R.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.3703600Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.3814330Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreLocation-E9RKB4D0D5XQL9PPEAMWSV410.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.3917250Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.4018800Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreTransferable-1FNQIRK77DZ6X4GBOYK3MEVDP.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.4019600Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.4154030Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Symbols-1CWD38Q8KTQQEOJM685WBACQX.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.4255170Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.4356250Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UserNotifications-2TJOQJR9B7MW8Y9O2F1ZU3LX.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.4457400Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.4522960Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/OpenGLES-ETDGOAGP5FJYI24CTVGH4I6Z3.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.4623890Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.4725120Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/DataDetection-24IB4PJ0DRL2FNW5HLDG7Y3YX.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.4826710Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.4927770Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreText-GR7ZU0AXFO4LPKG9T4QEFMS5.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.5029200Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.5130390Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/FileProvider-KDKK10WV399JS6LQ2WRYI1KG.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.5231590Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.5332820Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Symbols-SB9L8923HNV2EH83BEBDD3P8.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.5439350Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.5557700Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreVideo-D27F9Y26PM62REBREASNM7S0B.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.5670970Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.5780460Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/MediaAccessibility-A577S2QNUXGNKBDBF2TRUELUE.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.5882540Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.6023670Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/FileProvider-4GA9B7LBURMFY0WNSIR8BWCN3.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.6134370Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.6264630Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Metal-6JSLKR0XL9B8SM55WR3TZTNSF.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.6407050Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.6514120Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreImage-ATZVM5RKGFDU7YDLJUHU6W8Q7.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.6614960Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.6719130Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/QuartzCore-DEV5C6L9QOSG2PV71UY7HNWYL.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.6820390Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.6936720Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreMedia-4ZTE674M2EPZM4WLG9RSIZF6X.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.7063760Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.7164990Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/SwiftUICore-7MNKQMVEHT9QLOJ3H7NWQ2KC7.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.7265960Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:07.7385180Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UIKit-2SNLPBHP1F1OMFL29ZMSQ2DPX.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.2393680Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.2495900Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreVideo-1P14BIJFMAK8GWR0U99GLDUN9.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.2597670Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.2700940Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_LocationEssentials-2R2G1X3WNNHQT1OIU5CS8IT4M.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.2804700Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.2906090Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/AVFAudio-3723V8ZKC719DLFQM4GGXLF8P.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.3007360Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.3110130Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreImage-B4O9X0UBAARRUTAMH2N83IQX0.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.3212410Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.3313700Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/QuartzCore-DDKN486Q0L650C5WGX6FU5SKL.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.3415350Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.3518110Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreLocation-9D9HJ8I87YUX9N0VDJWF2X0JG.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.3620650Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.3722080Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/VideoToolbox-ASDAPJY84IAI80RCK4HKQ0EC2.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.3823400Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.3957070Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/SwiftUICore-E2VKFOU65N487KRNNGZTQPAJ7.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.4058960Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.4161390Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Intents-2HLM1NE0GZDQ6D55RTKG7Z7O.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.4278430Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.4401500Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UIKit-ETJ6WLONDNAOGJ9QM61EE7PV8.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.8571050Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.8672580Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/MediaToolbox-7TOM8ENBWC1QIFZ7VNJ3Y9XY9.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.8781260Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.8884900Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/AuthenticationServices-8RI826BO6K5GO5ZSVWU13DU4U.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.8988420Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.9124530Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/SwiftUI-5IB1BK3G3NFITCVILZW84Z18Z.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.9227590Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.9328920Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/AVFoundation-1DSIAJ79RA555JW378SFGK9OY.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.9430070Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.9531450Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/SafariServices-9BQ1RVOZ39XCRMHQQ0Y6Z6FIF.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.9632770Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.9740570Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/WebKit-GL2JT7NAD3NIVGALI6RAD2R9.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.9841750Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:08.9967400Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Network-AGEYKG0VCTSHLOFD9ZA3T2CX3.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.0068850Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.0178070Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/MediaPlayer-AQ4L3HDAJJE6SVBYHFWY0NKBC.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.0279570Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.0388210Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Photos-AM10FSCRSJAFSHDQD86MVMA68.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.0494680Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.0601880Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/AVKit-8XC50CZ41CETRI004I2RGURAG.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.0704320Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.0805730Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/SwiftUI-F0HST1WD1DV5VEK5QLTLYY9Y5.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.0907520Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.1008740Z SwiftExplicitDependencyGeneratePcm arm64 /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/PhotosUI-884TNI7J6L1057T4PQQI5IYXW.pcm
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.1115860Z 
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.1278620Z SwiftCompile normal arm64 Compiling\ BeansLiveActivity.swift,\ BeansNowPlayingAttributes.swift /Users/runner/work/Beans-Music/Beans-Music/BeansLiveActivity/BeansLiveActivity.swift /Users/runner/work/Beans-Music/Beans-Music/BeansLiveActivityShared/BeansNowPlayingAttributes.swift /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/CoreData.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/CoreFoundation.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/ExtensionFoundation.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/AppIntents.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/System.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Foundation.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/CoreTransferable.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/WidgetKit.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/RelevanceKit.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/_Builtin_float.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/ActivityKit.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Intents.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Darwin.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/FileProvider.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/_AppIntents_SwiftUI.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/CoreGraphics.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/os.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Distributed.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/simd.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/DataDetection.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/_DarwinFoundation1.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/DeveloperToolsSupport.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/CoreSpotlight.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/_StringProcessing.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/_DarwinFoundation3.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/_Concurrency.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/LightweightCodeRequirements.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Observation.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/_DarwinFoundation2.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Network.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/ObjectiveC.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/OSLog.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/XPC.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/SwiftUI.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/UIKit.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/SwiftUICore.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/QuartzCore.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Combine.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Metal.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Dispatch.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Symbols.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Swift.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/CoreImage.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/CoreLocation.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Spatial.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/CoreVideo.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/UniformTypeIdentifiers.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/Accessibility.swiftmodule/arm64e-apple-ios.swiftmodule /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/prebuilt-modules/26.5/CoreText.swiftmodule/arm64e-apple-ios.swiftmodule /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_intrinsics-41RHAEAN0U9O2NIGKNMBNUCXD.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_tgmath-6MOKQ7VAH69RY8K4CFYTB2VG8.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_limits-2Y1SR0W0C54R7D1AVOCN825I4.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_float-3RS0DX2SWBA4UJLMM43S7VQGZ.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/IOSurface-99SF15QUD57GH9FN712MR0OHP.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/sys_types-CP1RJVY8I4RZL0XL44HGBM1UD.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_DarwinFoundation2-9U0GJ1BGDBSRV35VCDA89WRGM.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/OpenGLES-D7KTY2FR9FW2P76YKZ7SFIQFI.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/dnssd-ETER0OPA4GKCWSWQL7CS9RZOA.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ptrcheck-3ARPMC1NDYMTZARDW70GXS3SC.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreSpotlight-2DS0HLYL02Z8XALSYX6N892A6.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Metal-6JSLKR0XL9B8SM55WR3TZTNSF.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/AppIntents-YQINWNSF29OVWZIK68ZOCE29.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreImage-B4O9X0UBAARRUTAMH2N83IQX0.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/QuartzCore-DDKN486Q0L650C5WGX6FU5SKL.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdint-D35AI0JKV5SNDTAU5LD3FVUFP.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/DeveloperToolsSupport-DM6AXY7XWARJBRZ4F66KR149O.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Spatial-D7TUYEKCWSAYN2NMVZMF9517.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ImageIO-3S0M4HOTD2H00LX6SEG3HFW8U.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_DarwinFoundation3-4VN5740VAZ896MEMPR9AIXOEZ.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UserNotifications-8Z4C5Q6KTL26DLCUN6K5CV2SX.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/OSLog-3ZG6PJQ717FC1ET6E0SRB6FWW.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UIUtilities-5RBUCUYBOTQ9C5SQE3914NGQM.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/RelevanceKit-1HB3C58FR6OZ6NWHECE7VMEW.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stddef-AOMEVXRMHE5F45PMKYACHKJ4N.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/SwiftUI-F0HST1WD1DV5VEK5QLTLYY9Y5.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Security-BX15OFCKO8QQ16H0SSETCY62Y.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdatomic-4IGATNU58WBR6GFCLH3M96549.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CFNetwork-B94N8PIKYUBO42QO315U02DMH.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ptrauth-861YJR26J2FMX7NJBTD694KAB.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/SwiftUICore-E2VKFOU65N487KRNNGZTQPAJ7.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/DataDetection-24IB4PJ0DRL2FNW5HLDG7Y3YX.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Dispatch-3I0BBI9A25ZDBV05797GPUSEW.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/WidgetKit-RCXM40TC9XA0UBOTEH4791UT.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/FileProvider-KDKK10WV399JS6LQ2WRYI1KG.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Intents-2HLM1NE0GZDQ6D55RTKG7Z7O.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/simd-DEA7U1KZ9KJ5DULZ8JHKR4XQS.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Darwin-7C3270PPZVLACDSHUCQ8OQP2W.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Symbols-SB9L8923HNV2EH83BEBDD3P8.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ExtensionFoundation-9Y9W76ERSM6V957P1PDYN553G.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Network-AGEYKG0VCTSHLOFD9ZA3T2CX3.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreText-2MNHBYC2RHID7VI1UVRTKO5Z8.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ObjectiveC-1JCG7CRSYJY4K335ZJQC1AG8F.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/MachO-Z80IICCLVWWLUR169421TCLP.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UniformTypeIdentifiers-5GKJ0W3DWX6TWXC1FUWV2K99V.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_inttypes-839VD6T72H8XSHBZIPODNA9IV.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/XPC-61MKTKVVD52KAR94QXEEP14CZ.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/ActivityKit-4A7BPW9YS82CYR3OE7EQ9MR5K.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Foundation-3KMF5HIAKN0L2ZTVG6ANID18L.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreFoundation-AS3IT761JHC8ANFUJBF05BH2J.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdbool-6QKWGDD1BF6UGH2XWJRIFLP7Q.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_Builtin_stdarg-E250H2DAKRYFQK67EFSOJLNXV.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/os_object-AEAW0GLJ0422EJ3Y05PLQ68R5.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_DarwinFoundation1-2AMKRA9H5IOQNTPY1ZTJ6CI4S.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreData-81PWIWRF62J9WV59UMIW518ZX.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreLocation-9D9HJ8I87YUX9N0VDJWF2X0JG.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreTransferable-1FNQIRK77DZ6X4GBOYK3MEVDP.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/Accessibility-CS7O0ZLFSONWLFHV2YPJZY4J4.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/UIKit-ETJ6WLONDNAOGJ9QM61EE7PV8.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_SwiftConcurrencyShims-DELPZWAIYNKQQL6XQFOKQVG06.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/os-E2700J216X7AAZPWDMP7V3W81.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/SwiftShims-7XA05KERQPX7PTI6THXODWD6L.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_AvailabilityInternal-ELWY57HFUNRG5XUJ1VJPYQYXG.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreVideo-1P14BIJFMAK8GWR0U99GLDUN9.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/os_workgroup-5T4QA8LJVKM7QWNFBJ4U37L3A.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/CoreGraphics-1ZXSH45TIIWQ8CX9SR61QBUHT.pcm /Users/runner/work/Beans-Music/Beans-Music/build/ModuleCache.noindex/_LocationEssentials-2R2G1X3WNNHQT1OIU5CS8IT4M.pcm /Users/runner/work/Beans-Music/Beans-Music/build/Build/Intermediates.noindex/Beans.build/Release-iphoneos/BeansLiveActivity.build/Objects-normal/arm64/BeansLiveActivity-dependencies-1.json (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.1333050Z CompileSwift normal arm64 (in target 'BeansLiveActivity' from project 'Beans')
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.1455770Z     cd /Users/runner/work/Beans-Music/Beans-Music
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.1557530Z     
+build-ipa	Build (unsigned)	2026-11-22T12:29:09.7595030Z 

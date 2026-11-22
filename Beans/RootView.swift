@@ -152,6 +152,7 @@ struct RootView: View {
     @EnvironmentObject private var theme: ThemeStore
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var player: PlayerManager
+    @EnvironmentObject private var listenTogether: ListenTogetherStore
     @EnvironmentObject private var favorites: FavoritesStore
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -659,6 +660,7 @@ struct RootView: View {
             PlayerView(isPresented: $showPlayer)
                 .environmentObject(favorites)
                 .environmentObject(player)
+                .environmentObject(listenTogether)
                 .environmentObject(player.clock)
                 .environmentObject(auth)
         }

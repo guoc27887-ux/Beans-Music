@@ -405,6 +405,7 @@ final class PlayerManager: NSObject, ObservableObject {
         queue = songs
         buildPlayOrder()
         jumpToOrderPosition(min(max(index, 0), songs.count - 1))
+        listenTogetherReportQueueEdit()
     }
 
     /// 由哔哩哔哩“听视频”模式复用 Beans 音频播放器，保留当前详情页的续播时间和播放意图。
@@ -439,6 +440,7 @@ final class PlayerManager: NSObject, ObservableObject {
         queue.append(contentsOf: additions)
         buildPlayOrder()
         savePersistedPlaybackState()
+        listenTogetherReportQueueEdit()
     }
 
     func playSong(_ song: Song, in context: [Song]) {
@@ -462,6 +464,7 @@ final class PlayerManager: NSObject, ObservableObject {
             buildPlayOrder()
         }
         savePersistedPlaybackState()
+        listenTogetherReportQueueEdit()
         Task { @MainActor in
             ToastCenter.shared.show("已加入下一首播放")
         }
@@ -478,6 +481,7 @@ final class PlayerManager: NSObject, ObservableObject {
 
     func togglePlayPause() {
         guard ensurePlaybackAllowed() else { return }
+        let listenTogetherHadPlayer = player != nil
         guard let player else {
             guard currentSong != nil else { return }
             loadCurrent(resumeAt: progress)
@@ -499,6 +503,12 @@ final class PlayerManager: NSObject, ObservableObject {
         }
         savePersistedPlaybackState()
         updateNowPlaying()
+        // 一起听：上报播放/暂停（无播放器实例时本次操作意图为起播）。
+        if listenTogetherHadPlayer {
+            listenTogetherReportTransport(isPlaying ? .play : .pause, formerSongID: currentSong?.id)
+        } else {
+            listenTogetherReportTransport(.play, formerSongID: currentSong?.id)
+        }
     }
 
     func next(manual: Bool = true) {
@@ -538,6 +548,7 @@ final class PlayerManager: NSObject, ObservableObject {
         )
         updateNowPlaying()
         savePersistedPlaybackState()
+        listenTogetherReportTransport(.progress, formerSongID: currentSong?.id)
     }
 
     /// 歌词点击专用的精确跳转。
@@ -578,6 +589,7 @@ final class PlayerManager: NSObject, ObservableObject {
             }
         }
         updateNowPlaying()
+        listenTogetherReportTransport(.progress, formerSongID: currentSong?.id)
     }
 
     func seekBy(_ delta: Double) {
@@ -585,6 +597,7 @@ final class PlayerManager: NSObject, ObservableObject {
     }
 
     func togglePlayMode() {
+        if isListenTogetherSessionActive { listenTogetherPlayModeTouched = true }
         switch playMode {
         case .sequential: playMode = .repeatAll
         case .repeatAll: playMode = .repeatOne
@@ -595,6 +608,7 @@ final class PlayerManager: NSObject, ObservableObject {
     }
 
     func setPlayMode(_ mode: PlayMode) {
+        if isListenTogetherSessionActive { listenTogetherPlayModeTouched = true }
         playMode = mode
         buildPlayOrder()
     }
@@ -625,6 +639,7 @@ final class PlayerManager: NSObject, ObservableObject {
         }
         buildPlayOrder(avoiding: removedID)
         savePersistedPlaybackState()
+        listenTogetherReportQueueEdit()
     }
 
     /// Move one queue item while keeping the current song and shuffle order
@@ -657,6 +672,7 @@ final class PlayerManager: NSObject, ObservableObject {
             orderPosition = currentIndex
         }
         if persist { savePersistedPlaybackState() }
+        listenTogetherReportQueueEdit()
     }
 
     /// 按播放列表当前显示顺序移动“接下来播放”的歌曲。
@@ -678,6 +694,7 @@ final class PlayerManager: NSObject, ObservableObject {
             playOrder = Array(playOrder.prefix(nextStart)) + future
             orderPosition = playOrder.firstIndex(of: currentIndex) ?? max(0, nextStart - 1)
             if persist { savePersistedPlaybackState() }
+            listenTogetherReportQueueEdit()
         } else {
             moveQueueItem(from: upcoming[sourcePosition].index, to: upcoming[destination].index, persist: persist)
         }
@@ -723,6 +740,172 @@ final class PlayerManager: NSObject, ObservableObject {
         }
         buildPlayOrder()
         savePersistedPlaybackState()
+        listenTogetherReportQueueEdit()
+    }
+
+    // MARK: - 一起听（移植自 MeloX，GPL-3.0）
+    //
+    // 以下 hook 只在 isListenTogetherSessionActive 为真时才触发回调；
+    // 没有一起听会话时对现有播放行为零影响。同步应用远端状态时通过
+    // listenTogetherSuppressReports 抑制回声上报。
+
+    /// 一起听走带事件回调（播放/暂停/切歌/拖动），由 ListenTogetherStore 设置。
+    var onListenTogetherTransport: ((ListenTogetherCommandType, Int?) -> Void)?
+    /// 一起听队列变更回调，由 ListenTogetherStore 设置。
+    var onListenTogetherQueueEdit: (() -> Void)?
+    /// 是否处于一起听会话中。
+    private(set) var isListenTogetherSessionActive = false
+    /// 同步应用远端播放状态期间为真，抑制本地 hook 上报。
+    var listenTogetherSuppressReports = false
+    /// 最近一次经 loadCurrent 加载的歌曲 ID，用于生成切歌命令的 formerSongId。
+    private var listenTogetherLastLoadedSongID: Int?
+    /// 最近一次加载的自动播放意图（缓冲期间判断“应处于播放态”）。
+    private var listenTogetherAutoplayIntent = false
+    /// 进入一起听前保存的播放模式，退出时恢复。
+    private var listenTogetherSavedPlayMode: PlayMode?
+    /// 用户在会话期间手动改过播放模式后为真，房间模式不再覆盖。
+    private var listenTogetherPlayModeTouched = false
+
+    /// 一起听上报用的队列歌曲 ID（仅网易云歌曲可跨端同步）。
+    var listenTogetherDisplaySongIDs: [Int] {
+        queue.filter { $0.source == .netease }.map(\.id)
+    }
+
+    /// 与 MeloX 一致：房间歌单按显示顺序上报，随机只影响本机下一首选择。
+    var listenTogetherRandomSongIDs: [Int] {
+        listenTogetherDisplaySongIDs
+    }
+
+    /// 上报给房间的播放态：正在播放，或缓冲中且本次加载意图为自动播放。
+    var listenTogetherReportedPlaying: Bool {
+        isPlaying || (isBuffering && listenTogetherAutoplayIntent)
+    }
+
+    @MainActor
+    func estimatedProgress() -> Double {
+        currentPlaybackTime()
+    }
+
+    func listenTogetherReportTransport(_ type: ListenTogetherCommandType, formerSongID: Int?) {
+        guard isListenTogetherSessionActive, !listenTogetherSuppressReports else { return }
+        onListenTogetherTransport?(type, formerSongID)
+    }
+
+    func listenTogetherReportQueueEdit() {
+        guard isListenTogetherSessionActive, !listenTogetherSuppressReports else { return }
+        onListenTogetherQueueEdit?()
+    }
+
+    func beginListenTogetherSession() {
+        guard listenTogetherSavedPlayMode == nil else { return }
+        listenTogetherSavedPlayMode = playMode
+        isListenTogetherSessionActive = true
+        listenTogetherPlayModeTouched = false
+        listenTogetherLastLoadedSongID = currentSong?.id
+        if playMode != .repeatAll {
+            playMode = .repeatAll
+            buildPlayOrder()
+        }
+    }
+
+    func endListenTogetherSession() {
+        guard let saved = listenTogetherSavedPlayMode else {
+            isListenTogetherSessionActive = false
+            return
+        }
+        listenTogetherSavedPlayMode = nil
+        isListenTogetherSessionActive = false
+        listenTogetherPlayModeTouched = false
+        if playMode != saved {
+            playMode = saved
+            buildPlayOrder()
+        }
+    }
+
+    private func applyListenTogetherPlayMode(_ roomPlayMode: String?) {
+        guard isListenTogetherSessionActive,
+              let mode = roomPlayMode?.uppercased() else { return }
+        let target: PlayMode
+        if mode.contains("SINGLE") {
+            target = .repeatOne
+        } else if mode.contains("LOOP") {
+            target = .repeatAll
+        } else if mode.contains("RANDOM") || mode.contains("SHUFFLE") {
+            target = .shuffle
+        } else {
+            target = .sequential
+        }
+        if playMode != target {
+            playMode = target
+            buildPlayOrder()
+        }
+    }
+
+    /// 把房间的播放状态应用到本地播放器（队列、当前歌、进度、播放/暂停）。
+    func synchronizeListenTogetherPlayback(
+        songs: [Song],
+        targetSongID: Int,
+        progress targetProgress: TimeInterval,
+        isPlaying shouldPlay: Bool,
+        adoptsRoomPlayMode: Bool,
+        playMode roomPlayMode: String?
+    ) async {
+        guard !songs.isEmpty,
+              let targetIndex = songs.firstIndex(where: { $0.id == targetSongID && $0.source == .netease }) else {
+            return
+        }
+        if adoptsRoomPlayMode, !listenTogetherPlayModeTouched {
+            applyListenTogetherPlayMode(roomPlayMode)
+        }
+        let queueChanged = songs.map(\.identityKey) != queue.map(\.identityKey)
+        let songChanged = currentSong?.id != targetSongID || currentSong?.source != .netease
+
+        listenTogetherSuppressReports = true
+        defer { listenTogetherSuppressReports = false }
+
+        if queueChanged || currentIndex != targetIndex {
+            queue = songs
+            currentIndex = targetIndex
+            buildPlayOrder()
+            orderPosition = playMode == .shuffle
+                ? (playOrder.firstIndex(of: currentIndex) ?? 0)
+                : currentIndex
+        }
+
+        if songChanged {
+            loadCurrent(resumeAt: max(targetProgress, 0), autoplay: shouldPlay)
+            return
+        }
+
+        if abs(currentPlaybackTimeFallback() - targetProgress) > 0.35 {
+            seek(to: targetProgress)
+        }
+        if shouldPlay != isPlaying {
+            togglePlayPause()
+        }
+        savePersistedPlaybackState()
+    }
+
+    /// 只同步队列（当前歌不变），不打断播放。
+    func synchronizeListenTogetherQueue(songs: [Song]) {
+        guard let current = currentSong,
+              let index = songs.firstIndex(where: { $0.identityKey == current.identityKey }),
+              songs.map(\.identityKey) != queue.map(\.identityKey) else { return }
+        listenTogetherSuppressReports = true
+        defer { listenTogetherSuppressReports = false }
+        queue = songs
+        currentIndex = index
+        buildPlayOrder()
+        orderPosition = playMode == .shuffle
+            ? (playOrder.firstIndex(of: currentIndex) ?? 0)
+            : currentIndex
+        savePersistedPlaybackState()
+    }
+
+    /// 非 MainActor 上下文可用的进度近似值（播放器内部同步路径使用）。
+    private func currentPlaybackTimeFallback() -> Double {
+        guard !isBuffering, let time = player?.currentTime().seconds, time.isFinite else { return progress }
+        return max(0, time)
     }
 
     // MARK: - 睡眠定时
@@ -774,6 +957,7 @@ final class PlayerManager: NSObject, ObservableObject {
         stopListeningSegment()
         stopAudioSessionWatchdog()
         updateNowPlaying()
+        listenTogetherReportTransport(.pause, formerSongID: currentSong?.id)
     }
 
     // Read the AVPlayer clock on visible lyric frames; wall-clock extrapolation
@@ -847,6 +1031,14 @@ final class PlayerManager: NSObject, ObservableObject {
     ) {
         guard ensurePlaybackAllowed() else { return }
         guard let song = currentSong else { return }
+        // 一起听：切歌时上报 GOTO（同步应用期间由抑制标志拦截）。
+        if isListenTogetherSessionActive {
+            if let last = listenTogetherLastLoadedSongID, last != song.id {
+                listenTogetherReportTransport(.goTo, formerSongID: last)
+            }
+            listenTogetherLastLoadedSongID = song.id
+        }
+        listenTogetherAutoplayIntent = autoplay
         webDAVLoadTask?.cancel()
         webDAVLoadTask = nil
         audioRecoveryWorkItem?.cancel()

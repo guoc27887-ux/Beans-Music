@@ -1,0 +1,18 @@
+== FoundationModels / Intelligence ==
+== glass family ==
+91
+== scroll edge / tab minimize / toolbar spacer ==
+19
+./Beans/RootView.swift
+./Modules/CiliCili/Integration/CiliCiliAudioCommentsHost.swift
+./Modules/CiliCili/Sources/App/LiquidGlassTabBar.swift
+./Modules/CiliCili/Sources/App/UITestFixtures/UITestFixtureRootView.swift
+./Modules/CiliCili/Sources/Features/Dynamic/DynamicDetailBottomInteractionBar.swift
+./Modules/CiliCili/Sources/Features/Dynamic/DynamicFeedCard.swift
+./Modules/CiliCili/Sources/Features/VideoDetail/VideoDetailNativeContentTabView.swift
+./Modules/CiliCili/Sources/Storage/LibraryStore.swift
+./recovery/Beans-2.0.3-b2-direct-project/Sources/CiliCiliKitRecoveredNominalCatalog/CiliCiliNominalCatalog.swift
+./recovery/Beans-2.0.3-b2-direct-project/Sources/CiliCiliKitReflectionEvidence/ReflectionScaffold.swift
+== Animatable macro / other 26 ==
+== available(iOS 26 guards count ==
+36

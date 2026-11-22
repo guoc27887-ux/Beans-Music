@@ -889,6 +889,7 @@ extension View {
 private struct BeansDetailMiniPlayerModifier: ViewModifier {
     @EnvironmentObject private var auth: AuthStore
     @EnvironmentObject private var player: PlayerManager
+    @EnvironmentObject private var listenTogether: ListenTogetherStore
     @EnvironmentObject private var theme: ThemeStore
     @ObservedObject private var favorites = FavoritesStore.shared
     @State private var showPlayer = false
@@ -918,6 +919,7 @@ private struct BeansDetailMiniPlayerModifier: ViewModifier {
                     PlayerView(isPresented: $showPlayer)
                         .environmentObject(auth)
                         .environmentObject(player)
+                        .environmentObject(listenTogether)
                         .environmentObject(player.clock)
                         .environmentObject(theme)
                         .environmentObject(favorites)
