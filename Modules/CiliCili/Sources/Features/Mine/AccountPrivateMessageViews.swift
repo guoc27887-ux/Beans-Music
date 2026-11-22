@@ -859,7 +859,7 @@ private struct AccountPrivateMessageConversationView: View {
                 )
             }
 
-            GlassEffectContainer(spacing: 10) {
+            GlassEffectContainerCompat(spacing: 10) {
                 HStack(spacing: 10) {
                     Menu {
                         Button {
@@ -886,7 +886,7 @@ private struct AccountPrivateMessageConversationView: View {
                         }
                         .frame(width: 36, height: 36)
                     }
-                    .buttonStyle(.glass)
+                    .glassButtonStyleCompat()
                     .buttonBorderShape(.circle)
                     .disabled(isSending || isSendingImage)
                     .accessibilityLabel("添加附件")

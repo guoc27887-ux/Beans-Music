@@ -665,7 +665,7 @@ private struct ZoomyViewerImagePage: View {
     }
 
     private var loadingIndicator: some View {
-        GlassEffectContainer(spacing: 8) {
+        GlassEffectContainerCompat(spacing: 8) {
             ProgressView()
                 .progressViewStyle(.circular)
                 .controlSize(.large)

@@ -254,10 +254,10 @@ private struct BiliGlassButtonStyleModifier: ViewModifier {
     func body(content: Content) -> some View {
         if prominent {
             content
-                .buttonStyle(.glassProminent)
+                .glassButtonStyleCompat(prominent: true)
         } else {
             content
-                .buttonStyle(.glass)
+                .glassButtonStyleCompat()
         }
     }
 }
@@ -303,7 +303,7 @@ struct TopScrollEdgeEffect: ViewModifier {
 
     @ViewBuilder
     private func nativeStyledContent(_ content: Content) -> some View {
-        content.scrollEdgeEffectStyle(.soft, for: .top)
+        content.scrollEdgeEffectStyleSoftCompat(for: .top)
     }
 }
 
@@ -321,7 +321,7 @@ private struct RootFloatingNavigationTitleModifier<Accessory: View>: ViewModifie
         content
             .environment(\.rootNavigationTitleHidden, $isTitleHidden)
             .hiddenRootNavigationTitle(title)
-            .safeAreaBar(edge: .top, alignment: .leading, spacing: -4) {
+            .safeAreaBarCompat(edge: .top, alignment: .leading, spacing: -4) {
                 RootFloatingNavigationTitle(
                     title: title,
                     isTitleHidden: isTitleHidden,

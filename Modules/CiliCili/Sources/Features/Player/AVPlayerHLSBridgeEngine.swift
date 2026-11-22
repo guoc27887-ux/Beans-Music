@@ -1465,7 +1465,9 @@ final class AVPlayerHLSBridgeEngine: PlayerRenderingEngine {
     private func applyDisplayDynamicRangePolicy(to controller: AVPlayerViewController) {
         let isHDR = source?.dynamicRange.isHDR == true
         var policyParts = ["target=controller", "hdr=\(isHDR)"]
-        controller.preferredDisplayDynamicRange = isHDR ? .automatic : .standard
+        if #available(iOS 26.0, *) {
+            controller.preferredDisplayDynamicRange = isHDR ? .automatic : .standard
+        }
         controller.view.layer.toneMapMode = .automatic
         policyParts.append("preferred=\(isHDR ? "automatic" : "standard")")
         policyParts.append("toneMap=automatic")
@@ -1478,7 +1480,9 @@ final class AVPlayerHLSBridgeEngine: PlayerRenderingEngine {
         if source?.dynamicRange == .dolbyVision {
             policyParts.append("dvPolicy=\(DolbyVisionRenderingPolicy.stored().playablePolicy.rawValue)")
         }
-        layer.preferredDynamicRange = isHDR ? .automatic : .standard
+        if #available(iOS 26.0, *) {
+            layer.preferredDynamicRange = isHDR ? .automatic : .standard
+        }
         layer.toneMapMode = .automatic
         policyParts.append("preferred=\(isHDR ? "automatic" : "standard")")
         policyParts.append("toneMap=automatic")
@@ -3253,7 +3257,9 @@ private final class NativeDolbyVideoOverlayRenderer {
     }
 
     private func applyDisplayPolicy(to layer: AVPlayerLayer) {
-        layer.preferredDynamicRange = .high
+        if #available(iOS 26.0, *) {
+            layer.preferredDynamicRange = .high
+        }
         layer.toneMapMode = .never
         displayPolicySummary = "display=high/noToneMap"
     }

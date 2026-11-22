@@ -3009,7 +3009,12 @@ private struct SurfaceOnlyUIKitMoreControlsButton: UIViewRepresentable {
     }
 
     private var configuration: UIButton.Configuration {
-        var configuration = UIButton.Configuration.clearGlass()
+        var configuration: UIButton.Configuration
+        if #available(iOS 26.0, *) {
+            configuration = .clearGlass()
+        } else {
+            configuration = .plain()
+        }
         configuration.baseForegroundColor = .white
         configuration.contentInsets = .zero
         return configuration

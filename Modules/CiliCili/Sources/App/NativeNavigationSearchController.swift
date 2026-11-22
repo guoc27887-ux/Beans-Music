@@ -250,7 +250,9 @@ private struct NativeNavigationSearchBridge: UIViewControllerRepresentable {
                 }
             }
             navigationItem.preferredSearchBarPlacement = .stacked
-            navigationItem.searchBarPlacementAllowsToolbarIntegration = false
+            if #available(iOS 26.0, *) {
+                navigationItem.searchBarPlacementAllowsToolbarIntegration = false
+            }
             navigationItem.hidesSearchBarWhenScrolling = false
             navigationController.view.setNeedsLayout()
             DispatchQueue.main.async { [weak self, weak navigationItem] in

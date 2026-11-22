@@ -42,11 +42,23 @@ struct DynamicDetailBottomInteractionBar: ToolbarContent {
         ToolbarItem(placement: .bottomBar) {
             likeButton
         }
-        ToolbarSpacer(.flexible, placement: .bottomBar)
+        if #available(iOS 26.0, *) {
+            ToolbarSpacer(.flexible, placement: .bottomBar)
+        } else {
+            ToolbarItem(placement: .bottomBar) {
+                Spacer()
+            }
+        }
         ToolbarItem(placement: .bottomBar) {
             commentButton
         }
-        ToolbarSpacer(.flexible, placement: .bottomBar)
+        if #available(iOS 26.0, *) {
+            ToolbarSpacer(.flexible, placement: .bottomBar)
+        } else {
+            ToolbarItem(placement: .bottomBar) {
+                Spacer()
+            }
+        }
         ToolbarItem(placement: .bottomBar) {
             shareButton
         }

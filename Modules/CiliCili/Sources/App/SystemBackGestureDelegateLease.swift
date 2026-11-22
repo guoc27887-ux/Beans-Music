@@ -17,16 +17,20 @@ final class SystemBackGestureDelegateLease {
             self.navigationController = navigationController
             self.ownerObject = ownerObject
             inheritedEdgePopDelegate = navigationController.interactivePopGestureRecognizer?.delegate
-            inheritedContentPopDelegate = navigationController.interactiveContentPopGestureRecognizer?.delegate
+            if #available(iOS 26.0, *) {
+                inheritedContentPopDelegate = navigationController.interactiveContentPopGestureRecognizer?.delegate
+            }
         }
 
         if let edgePopGesture = navigationController.interactivePopGestureRecognizer {
             edgePopGesture.isEnabled = true
             edgePopGesture.delegate = owner
         }
-        if let contentPopGesture = navigationController.interactiveContentPopGestureRecognizer {
-            contentPopGesture.isEnabled = true
-            contentPopGesture.delegate = owner
+        if #available(iOS 26.0, *) {
+            if let contentPopGesture = navigationController.interactiveContentPopGestureRecognizer {
+                contentPopGesture.isEnabled = true
+                contentPopGesture.delegate = owner
+            }
         }
     }
 
@@ -40,9 +44,11 @@ final class SystemBackGestureDelegateLease {
            Self.isOwned(edgePopGesture.delegate, by: ownerObject) {
             edgePopGesture.delegate = inheritedEdgePopDelegate
         }
-        if let contentPopGesture = navigationController.interactiveContentPopGestureRecognizer,
-           Self.isOwned(contentPopGesture.delegate, by: ownerObject) {
-            contentPopGesture.delegate = inheritedContentPopDelegate
+        if #available(iOS 26.0, *) {
+            if let contentPopGesture = navigationController.interactiveContentPopGestureRecognizer,
+               Self.isOwned(contentPopGesture.delegate, by: ownerObject) {
+                contentPopGesture.delegate = inheritedContentPopDelegate
+            }
         }
         reset()
     }

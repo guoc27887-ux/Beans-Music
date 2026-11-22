@@ -14,14 +14,16 @@ extension VideoDetailSystemBackGestureBridge.Controller {
             popGesture.delegate = self
         }
 
-        guard let contentPopGesture = navigationController.interactiveContentPopGestureRecognizer else {
-            return
+        if #available(iOS 26.0, *) {
+            guard let contentPopGesture = navigationController.interactiveContentPopGestureRecognizer else {
+                return
+            }
+            if !preservesSystemGestureDelegates {
+                contentPopGesture.isEnabled = true
+                contentPopGesture.delegate = self
+            }
+            prioritizeSystemContentPopGesture(contentPopGesture, in: navigationController.view)
         }
-        if !preservesSystemGestureDelegates {
-            contentPopGesture.isEnabled = true
-            contentPopGesture.delegate = self
-        }
-        prioritizeSystemContentPopGesture(contentPopGesture, in: navigationController.view)
     }
 
     func prioritizeSystemContentPopGesture(_ contentPopGesture: UIGestureRecognizer, in rootView: UIView) {
@@ -44,8 +46,10 @@ extension VideoDetailSystemBackGestureBridge.Controller {
         if navigationController.interactivePopGestureRecognizer?.delegate === self {
             navigationController.interactivePopGestureRecognizer?.delegate = nil
         }
-        if navigationController.interactiveContentPopGestureRecognizer?.delegate === self {
-            navigationController.interactiveContentPopGestureRecognizer?.delegate = nil
+        if #available(iOS 26.0, *) {
+            if navigationController.interactiveContentPopGestureRecognizer?.delegate === self {
+                navigationController.interactiveContentPopGestureRecognizer?.delegate = nil
+            }
         }
         attachedNavigationController = nil
         configuredContentPopID = nil

@@ -27,7 +27,7 @@ struct HomeFeedNavigationChrome: ViewModifier {
                         .accessibilityHidden(hidesNavigationChrome)
                         .animation(.smooth(duration: 0.18), value: hidesNavigationChrome)
                 }
-                .sharedBackgroundVisibility(toolbarItemBackgroundVisibility)
+                .sharedBackgroundVisibilityCompat(toolbarItemBackgroundVisibility)
                 ToolbarItem(placement: .topBarTrailing) {
                     accountMessageButton
                         .opacity(navigationChromeOpacity)
@@ -35,7 +35,7 @@ struct HomeFeedNavigationChrome: ViewModifier {
                         .accessibilityHidden(hidesNavigationChrome)
                         .animation(.smooth(duration: 0.18), value: hidesNavigationChrome)
                 }
-                .sharedBackgroundVisibility(toolbarItemBackgroundVisibility)
+                .sharedBackgroundVisibilityCompat(toolbarItemBackgroundVisibility)
             }
             .nativeTopNavigationChrome()
     }

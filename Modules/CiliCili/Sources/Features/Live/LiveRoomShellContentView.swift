@@ -640,7 +640,7 @@ private struct LiveRoomSimpleLiveLayoutView: View {
     }
 
     private var bottomActionBar: some View {
-        GlassEffectContainer(spacing: 8) {
+        GlassEffectContainerCompat(spacing: 8) {
             HStack(spacing: 8) {
                 liveActionButton(
                     title: viewModel.isFollowingAnchor ? "已关注" : "关注",

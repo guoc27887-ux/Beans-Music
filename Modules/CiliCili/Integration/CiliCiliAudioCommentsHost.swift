@@ -79,7 +79,13 @@ private struct AudioCommentsContent: View {
             ToolbarItem(placement: .bottomBar) {
                 Button("刷新评论", systemImage: "arrow.clockwise") { Task { await viewModel.retryComments() } }
             }
-            ToolbarSpacer(.flexible, placement: .bottomBar)
+            if #available(iOS 26.0, *) {
+                ToolbarSpacer(.flexible, placement: .bottomBar)
+            } else {
+                ToolbarItem(placement: .bottomBar) {
+                    Spacer()
+                }
+            }
             ToolbarItem(placement: .bottomBar) {
                 Button("发表评论", systemImage: "square.and.pencil") { composer = .dynamic }
             }

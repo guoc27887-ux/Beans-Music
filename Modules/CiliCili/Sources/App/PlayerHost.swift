@@ -14,13 +14,19 @@ final class PlayerHostManager {
 
     /// 在拿到 windowScene 后安装常驻宿主窗口（幂等）。
     func installIfNeeded(in scene: UIWindowScene) {
+        let bounds: CGRect
+        if #available(iOS 26.0, *) {
+            bounds = scene.effectiveGeometry.coordinateSpace.bounds
+        } else {
+            bounds = scene.screen.bounds
+        }
         guard window == nil else {
             // 场景变化时同步 frame
-            window?.frame = scene.effectiveGeometry.coordinateSpace.bounds
+            window?.frame = bounds
             return
         }
         let w = PlayerHostWindow(windowScene: scene)
-        w.frame = scene.effectiveGeometry.coordinateSpace.bounds
+        w.frame = bounds
         w.isHidden = false
         window = w
     }

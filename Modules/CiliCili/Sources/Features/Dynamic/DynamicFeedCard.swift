@@ -303,7 +303,7 @@ private struct DynamicDetailView: View {
         .defersRemoteImageLoadsDuringFastScroll()
         .accessibilityIdentifier("dynamic.detail.scroll")
         .scrollIndicators(.hidden)
-        .scrollEdgeEffectStyle(.soft, for: .top)
+        .scrollEdgeEffectStyleSoftCompat(for: .top)
         .onGeometryChange(for: CGFloat.self) { geometry in
             max(floor(geometry.size.width - 24), 0)
         } action: { _, width in

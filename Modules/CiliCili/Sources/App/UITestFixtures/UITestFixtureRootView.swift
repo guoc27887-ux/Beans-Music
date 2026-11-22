@@ -77,7 +77,7 @@ private struct UITestDynamicDetailFixtureView: View {
                 }
             }
         }
-        .tabBarMinimizeBehavior(.never)
+        .tabBarMinimizeBehaviorNeverCompat()
     }
 
     @ViewBuilder

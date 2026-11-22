@@ -26,7 +26,7 @@ struct VideoDetailActionStrip: View, Equatable {
     var body: some View {
         let layout = VideoDetailActionStripLayout(contentWidth: model.contentWidth)
 
-        GlassEffectContainer(spacing: layout.columnSpacing) {
+        GlassEffectContainerCompat(spacing: layout.columnSpacing) {
             VideoDetailActionStripButtonRow(
                 model: model,
                 layout: layout,

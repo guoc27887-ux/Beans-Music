@@ -35,7 +35,13 @@ struct VideoDetailNativeContentTabView<Content: View>: View {
         .ignoresSafeArea(.container, edges: .bottom)
         .toolbar {
             if onOpenCommentComposer != nil {
-                ToolbarSpacer(.flexible, placement: .bottomBar)
+                if #available(iOS 26.0, *) {
+                    ToolbarSpacer(.flexible, placement: .bottomBar)
+                } else {
+                    ToolbarItem(placement: .bottomBar) {
+                        Spacer()
+                    }
+                }
                 ToolbarItem(placement: .bottomBar) {
                     Group {
                         if selection == .comments {
@@ -53,13 +59,17 @@ struct VideoDetailNativeContentTabView<Content: View>: View {
                     .allowsHitTesting(selection == .comments)
                     .accessibilityHidden(selection != .comments)
                 }
-                .sharedBackgroundVisibility(selection == .comments ? .automatic : .hidden)
-                ToolbarSpacer(.fixed, placement: .bottomBar)
+                .sharedBackgroundVisibilityCompat(selection == .comments ? .automatic : .hidden)
+                if #available(iOS 26.0, *) {
+                    ToolbarSpacer(.fixed, placement: .bottomBar)
+                }
                 ToolbarItem(placement: .bottomBar) {
                     VideoDetailToolbarSegmentedPickerView(selection: toolbarSelection)
                         .frame(width: VideoDetailToolbarSegmentedPickerView.compactWidth)
                 }
-                ToolbarSpacer(.fixed, placement: .bottomBar)
+                if #available(iOS 26.0, *) {
+                    ToolbarSpacer(.fixed, placement: .bottomBar)
+                }
                 ToolbarItem(placement: .bottomBar) {
                     Group {
                         if selection == .comments, let onOpenCommentComposer {
@@ -77,8 +87,14 @@ struct VideoDetailNativeContentTabView<Content: View>: View {
                     .allowsHitTesting(selection == .comments)
                     .accessibilityHidden(selection != .comments)
                 }
-                .sharedBackgroundVisibility(selection == .comments ? .automatic : .hidden)
-                ToolbarSpacer(.flexible, placement: .bottomBar)
+                .sharedBackgroundVisibilityCompat(selection == .comments ? .automatic : .hidden)
+                if #available(iOS 26.0, *) {
+                    ToolbarSpacer(.flexible, placement: .bottomBar)
+                } else {
+                    ToolbarItem(placement: .bottomBar) {
+                        Spacer()
+                    }
+                }
             } else {
                 ToolbarItemGroup(placement: .bottomBar) {
                     Spacer(minLength: 0)

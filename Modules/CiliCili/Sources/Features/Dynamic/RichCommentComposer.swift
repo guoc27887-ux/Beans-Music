@@ -1038,7 +1038,7 @@ struct RichCommentComposerView: View {
                         .contentTransition(.symbolEffect(.replace))
                         .frame(width: ControlLayout.size, height: ControlLayout.size)
                 }
-                .buttonStyle(.glass)
+                .glassButtonStyleCompat()
                 .buttonBorderShape(.circle)
                 .controlSize(.small)
                 .accessibilityLabel(inputMode == .emotes ? "切换至系统键盘" : "选择表情")
@@ -1050,7 +1050,7 @@ struct RichCommentComposerView: View {
                     Image(systemName: "photo")
                         .frame(width: ControlLayout.size, height: ControlLayout.size)
                 }
-                .buttonStyle(.glass)
+                .glassButtonStyleCompat()
                 .buttonBorderShape(.circle)
                 .controlSize(.small)
                 .disabled(draft.images.count >= Limits.maximumImageCount || isSubmitting)
@@ -1256,13 +1256,13 @@ private struct RichCommentSendButtonAppearance: ViewModifier {
     func body(content: Content) -> some View {
         if isEnabled {
             content
-                .buttonStyle(.glassProminent)
+                .glassButtonStyleCompat(prominent: true)
                 .buttonBorderShape(.circle)
                 .tint(tint)
                 .foregroundStyle(.white)
         } else {
             content
-                .buttonStyle(.glass)
+                .glassButtonStyleCompat()
                 .buttonBorderShape(.circle)
                 .foregroundStyle(.primary)
         }

@@ -30,7 +30,7 @@ struct DynamicFeedActionBar: View {
     }
 
     var body: some View {
-        GlassEffectContainer(spacing: 8) {
+        GlassEffectContainerCompat(spacing: 8) {
             HStack(spacing: 8) {
                 shareActionPill
                     .frame(maxWidth: .infinity)
