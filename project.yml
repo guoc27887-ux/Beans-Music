@@ -24,6 +24,7 @@ targets:
       - Beans/Resources/SimpleIcons-LICENSE.txt
       - Beans/Resources/CeruBilibili-NOTICE.md
       - Beans/Resources/ikun-music-source.js
+      - Beans/Resources/1010-mobile.js
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.beans.app

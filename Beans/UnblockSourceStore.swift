@@ -108,6 +108,7 @@ struct ThirdPartySource: Identifiable, Codable, Hashable, Sendable {
 final class UnblockSourceStore: ObservableObject {
     static let shared = UnblockSourceStore()
     private static let bundledIkunSourceID = "beans.bundled.ikun-music-source.v26"
+    private static let bundled1010SourceID = "beans.bundled.1010-mobile-source.v1"
     private static let removedBuiltInSourceIDs: Set<String> = [
         "beans.preset.shiqianjiang.lx.v7",
         "beans.preset.shiqianjiang.cr.v7",
@@ -154,6 +155,20 @@ final class UnblockSourceStore: ObservableObject {
             source.id = Self.bundledIkunSourceID
             source.enabled = true
             source.sourceURL = "bundle://ikun-music-source.js"
+            mergedSources.append(source)
+        }
+
+        // 再随附第二个内置音源（1010 手机版，五大平台聚合，多后端互为兜底）。
+        // ikun 的后端是单点（目前实测 /music/url 请求会挂起无响应），由 1010 接管，
+        // 避免官方取链失败后无源可用。两个源都启用，解析时按顺序尝试。
+        if !mergedSources.contains(where: { $0.id == Self.bundled1010SourceID }),
+           let bundledURL = Bundle.main.url(forResource: "1010-mobile", withExtension: "js"),
+           let imported = try? ThirdPartySourceImportParser.parse(fileURL: bundledURL),
+           let first = imported.first {
+            var source = first
+            source.id = Self.bundled1010SourceID
+            source.enabled = true
+            source.sourceURL = "bundle://1010-mobile.js"
             mergedSources.append(source)
         }
 
