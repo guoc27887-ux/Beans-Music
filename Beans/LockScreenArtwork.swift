@@ -3,11 +3,18 @@ import CryptoKit
 import MediaPlayer
 import UIKit
 
+/// 锁屏动态封面的设置键，iOS 18 与 iOS 26 共用（功能本身仅 iOS 26 可用）。
+enum BeansLockScreenArtworkSettings {
+    static let enabledKey = "beans.lockScreenImmersiveArtwork.enabled"
+}
+
 /// Supplies the local animated cover that iOS can use on the Lock Screen.
 /// Beans 2.0.3 exposes a lease and a video directory; this implementation preserves
 /// a private copy of each movie and uses a stable artwork identifier.
+/// 动态封面依赖 iOS 26 的 MPMediaItemAnimatedArtwork，iOS 18 上整体不可用。
+@available(iOS 26.0, *)
 final class BeansLockScreenArtwork {
-    static let enabledKey = "beans.lockScreenImmersiveArtwork.enabled"
+    static let enabledKey = BeansLockScreenArtworkSettings.enabledKey
 
     private var entries: [String: [String: MPMediaItemAnimatedArtwork]] = [:]
     private var pending = Set<String>()

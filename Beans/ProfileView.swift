@@ -1998,7 +1998,7 @@ struct SettingsView: View {
     @State private var settingsSearchText = ""
     @State private var settingsContentReady = false
     @State private var runtimeEnvironmentExpanded = false
-    @AppStorage(BeansLockScreenArtwork.enabledKey) private var lockScreenImmersiveArtworkEnabled = true
+    @AppStorage(BeansLockScreenArtworkSettings.enabledKey) private var lockScreenImmersiveArtworkEnabled = true
     @AppStorage(BeansImmersiveDetailHeader.enabledKey) private var immersiveDetailEnabled = true
 
     private var themeMode: BeansThemeMode {

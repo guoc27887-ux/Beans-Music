@@ -172,7 +172,8 @@ final class PlayerManager: NSObject, ObservableObject {
     private var lastNowPlayingArtworkKey: String?
     private var nowPlayingSongKey: String?
     private var nowPlayingInfo: [String: Any] = [:]
-    private lazy var lockScreenArtwork: BeansLockScreenArtwork = {
+    private lazy var lockScreenArtwork: BeansLockScreenArtwork? = {
+        guard #available(iOS 26.0, *) else { return nil }
         let artwork = BeansLockScreenArtwork()
         artwork.onReady = { [weak self] in self?.updateNowPlaying() }
         return artwork
@@ -2747,7 +2748,9 @@ final class PlayerManager: NSObject, ObservableObject {
                     }
                 }
             }
-            for (key, artwork) in lockScreenArtwork.artwork(sourceURL: artworkURL) { info[key] = artwork }
+            if #available(iOS 26.0, *), let lockScreenArtwork {
+                for (key, artwork) in lockScreenArtwork.artwork(sourceURL: artworkURL) { info[key] = artwork }
+            }
         } else {
             lastNowPlayingArtworkKey = nil
         }
