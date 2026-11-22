@@ -185,6 +185,14 @@ final class QishuiAPI: ObservableObject {
     ]
 
     private let session: URLSession
+    // 汽水官方直连会话（api.qishui.com）：搜索、歌单、歌词、评论、每日推荐与
+    // 扫码登录优先走直连，上面的网关只作兜底。独立会话开启 Cookie 存储，
+    // 承接官网预热的 ttwid 与扫码登录换回的会话 Cookie。
+    private let directSession: URLSession
+    private let directDeviceID: String
+    private let directInstallID: String
+    private var directWarmedUp = false
+    private let directStateLock = NSLock()
     private let songSearchCache = NSCache<NSString, QishuiCacheBox<[Song]>>()
     private let playlistSearchCache = NSCache<NSString, QishuiCacheBox<[Playlist]>>()
     private let recommendationCache = NSCache<NSString, QishuiCacheBox<[Playlist]>>()
@@ -201,6 +209,17 @@ final class QishuiAPI: ObservableObject {
         configuration.timeoutIntervalForResource = 30
         configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
         session = URLSession(configuration: configuration)
+        let directConfiguration = URLSessionConfiguration.default
+        directConfiguration.timeoutIntervalForRequest = 20
+        directConfiguration.timeoutIntervalForResource = 30
+        directConfiguration.httpCookieAcceptPolicy = .always
+        directConfiguration.httpShouldSetCookies = true
+        directSession = URLSession(configuration: directConfiguration)
+        // PC 客户端参数里的 device_id / iid：按 music-lib 的做法用毫秒时间戳伪造，
+        // 进程内保持不变即可。
+        let deviceSeed = Int64(Date().timeIntervalSince1970 * 1000)
+        directDeviceID = String(deviceSeed)
+        directInstallID = String(deviceSeed + 1)
         songSearchCache.countLimit = 40
         playlistSearchCache.countLimit = 40
         recommendationCache.countLimit = 8
@@ -220,6 +239,18 @@ final class QishuiAPI: ObservableObject {
         let cacheKey = catalogCacheKey("songs", query: trimmed, limit: targetCount)
         let (cached, stale) = cacheLookup(songSearchCache, key: cacheKey, ttl: songSearchTTL, staleTTL: 48 * 3600)
         if let cached { return cached }
+
+        // 直连优先：汽水 PC 网页端搜索 /luna/pc/search/track（参考 music-lib
+        // sodaPCWebSearchURL，无需签名）。直连有结果直接用，抛错或为空才落到
+        // 下面的网关分页逻辑兜底。
+        if let direct = try? await directSearchSongs(
+            keyword: trimmed,
+            targetCount: targetCount,
+            onPartialResults: onPartialResults
+        ), !direct.isEmpty {
+            cache(direct, in: songSearchCache, key: cacheKey)
+            return direct
+        }
 
         var songs: [Song] = []
         var seenSongs = Set<String>()
@@ -287,6 +318,12 @@ final class QishuiAPI: ObservableObject {
         let (cached, stale) = cacheLookup(playlistSearchCache, key: cacheKey, ttl: playlistSearchTTL, staleTTL: 7 * 24 * 3600)
         if let cached { return cached }
         do {
+            // 直连优先：/luna/pc/search/playlist，失败或为空回退网关。
+            if let direct = try? await directSearchPlaylists(keyword: trimmed, limit: targetCount),
+               !direct.isEmpty {
+                cache(direct, in: playlistSearchCache, key: cacheKey)
+                return direct
+            }
             let data = try await requestObject("/search/playlist", query: [
                 "keywords": trimmed,
                 "count": String(targetCount),
@@ -329,6 +366,14 @@ final class QishuiAPI: ObservableObject {
     }
 
     func searchAlbums(keyword: String, limit: Int = 40) async throws -> [Album] {
+        // 专辑有独立 PC 搜索端点 /luna/pc/search/album，直连优先；直连失败或
+        // 为空时回退到从搜歌结果聚合（数据源同样是直连优先的 searchSongs，
+        // 网关完全不可用时歌手 / 专辑依然能出结果）。歌手没有独立 PC 端点，
+        // searchArtists 一直走聚合，数据源即上面的 searchSongs。
+        if let direct = try? await directSearchAlbums(keyword: keyword, limit: limit),
+           !direct.isEmpty {
+            return direct
+        }
         let songs = try await searchSongs(keyword: keyword, limit: min(max(limit * 3, 80), 200))
         return albums(from: songs, limit: limit)
     }
@@ -341,6 +386,13 @@ final class QishuiAPI: ObservableObject {
         let (cached, stale) = cacheLookup(recommendationCache, key: cacheKey, ttl: recommendationTTL, staleTTL: 7 * 24 * 3600)
         if let cached { return cached }
         do {
+            // 直连优先：POST /luna/pc/discover/mix（discover_playlist_mix），
+            // 失败或为空回退网关 /recommend/playlist。
+            if let direct = try? await directRecommendedPlaylists(limit: targetCount),
+               !direct.isEmpty {
+                cache(direct, in: recommendationCache, key: cacheKey)
+                return direct
+            }
             let data = try await requestObject("/recommend/playlist", query: [
                 "count": String(targetCount),
             ])
@@ -375,6 +427,17 @@ final class QishuiAPI: ObservableObject {
             return cached
         }
         let fallback = cached ?? stale
+        // 直连优先：/luna/pc/playlist/detail（PC 客户端参数 + LunaPC 请求头，
+        // 参考 music-lib sodaPCPlaylistDetailURL）。直连拿到歌曲就用直连结果，
+        // 抛错或为空才走下面的网关分页兜底。
+        if let direct = try? await directPlaylistDetails(
+            id: id,
+            targetCount: targetCount,
+            onPartialSongs: onPartialSongs
+        ), !direct.songs.isEmpty {
+            cache(direct, in: playlistDetailsCache, key: cacheKey)
+            return direct
+        }
         let pageSize = min(targetCount, 100)
         var cursor = ""
         var sessionID = ""
@@ -477,6 +540,12 @@ final class QishuiAPI: ObservableObject {
 
     func lyric(for song: Song) async throws -> String? {
         guard let identifier = song.qishuiID, !identifier.isEmpty else { return nil }
+        // 直连优先：歌曲详情自带歌词（track_v2 / h5 seo_track 的 lyric.content，
+        // 汽水逐字格式转标准 LRC），网关 /lyric 兜底。取链 playbackURL 不动。
+        if let direct = try? await directLyric(trackID: identifier),
+           let direct, !direct.isEmpty {
+            return direct
+        }
         let data = try await requestObject("/lyric", query: ["track_id": identifier])
         if let lyric = firstString(data, keys: ["lyric", "lyrics", "content", "lrc"]), !lyric.isEmpty {
             return lyric
@@ -487,6 +556,11 @@ final class QishuiAPI: ObservableObject {
     func comments(for song: Song, limit: Int = 30) async throws -> NetEaseAPI.SongCommentPage {
         guard let identifier = song.qishuiID, !identifier.isEmpty else {
             return NetEaseAPI.SongCommentPage(total: 0, hot: [], comments: [])
+        }
+        // 直连优先：GET /luna/comments（qishui-api 的评论端点，group_id = track_id），
+        // 抛错或无评论时回退网关 /comment。
+        if let direct = try? await directComments(trackID: identifier, limit: limit) {
+            return direct
         }
         let data = try await requestObject("/comment", query: [
             "track_id": identifier,
@@ -778,5 +852,796 @@ final class QishuiAPI: ObservableObject {
         }
         let positive = hash & 0x7fff_ffff_ffff_ffff
         return max(1, Int(positive))
+    }
+}
+
+// MARK: - 汽水官方直连（api.qishui.com）
+//
+// 字段映射依据：guohuiyuan/music-lib 的 soda 实现（sodaPCWebSearchURL /
+// sodaPCAppParams / sodaPCPlaylistDetailURL / seo_track 歌词与 parseSodaLyric /
+// passport 扫码登录）与 guowenye/qishui-api（search/album、discover/mix、
+// /luna/comments、dailyMix、me/playlist、passport 固定参数）。
+// 直连在本机机房出口实测回空内容（疑似字节对机房 IP 风控），居民网络预期
+// 正常；实现与两个参考仓库逐项对齐，真实结果以真机为准。
+
+struct QishuiQRCodeSession {
+    let token: String
+    let qrContent: String
+    let cookieHeader: String
+}
+
+enum QishuiQRCodeStatus {
+    case waiting
+    case scanned
+    case success(cookie: String)
+    case expired
+    case verifyRequired
+    case failed(String)
+}
+
+extension QishuiAPI {
+    private static var pcWebUserAgent: String {
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    }
+
+    private static var lunaPCUserAgent: String { "LunaPC/3.3.0(359450208)" }
+
+    private static var passportUserAgent: String {
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) SodaMusic/3.1.0 Chrome/136.0.7103.59 Electron/36.4.0-rs.22.release.main.1 TTElectron/36.4.0-rs.22.release.main.1 Safari/537.36"
+    }
+
+    // MARK: 直连基础设施
+
+    /// 首次直连前先暖一次官网，让 ttwid 等 Cookie 进直连会话的 Cookie 存储。
+    private func warmUpDirectSessionIfNeeded() async {
+        directStateLock.lock()
+        if directWarmedUp {
+            directStateLock.unlock()
+            return
+        }
+        directWarmedUp = true
+        directStateLock.unlock()
+        guard let url = URL(string: "https://www.qishui.com/") else { return }
+        var request = URLRequest(url: url)
+        request.setValue(Self.pcWebUserAgent, forHTTPHeaderField: "User-Agent")
+        _ = try? await directSession.data(for: request)
+    }
+
+    /// PC 网页搜索公共参数（music-lib sodaPCWebSearchURL）。
+    private func directWebSearchItems(keyword: String, cursor: Int, count: Int) -> [URLQueryItem] {
+        [
+            URLQueryItem(name: "q", value: keyword),
+            URLQueryItem(name: "cursor", value: String(cursor)),
+            URLQueryItem(name: "count", value: String(count)),
+            URLQueryItem(name: "search_id", value: UUID().uuidString.lowercased()),
+            URLQueryItem(name: "search_method", value: "input"),
+            URLQueryItem(name: "debug_params", value: ""),
+            URLQueryItem(name: "from_search_id", value: ""),
+            URLQueryItem(name: "search_scene", value: ""),
+            URLQueryItem(name: "aid", value: "386088"),
+            URLQueryItem(name: "device_platform", value: "web"),
+            URLQueryItem(name: "channel", value: "pc_web"),
+        ]
+    }
+
+    /// PC 客户端公共参数（music-lib sodaPCAppParams，无凭据分支）。
+    private func directAppItems(extra: [URLQueryItem]) -> [URLQueryItem] {
+        var items = [
+            URLQueryItem(name: "aid", value: "386088"),
+            URLQueryItem(name: "app_name", value: "luna_pc"),
+            URLQueryItem(name: "region", value: "cn"),
+            URLQueryItem(name: "geo_region", value: "cn"),
+            URLQueryItem(name: "os_region", value: "cn"),
+            URLQueryItem(name: "sim_region", value: ""),
+            URLQueryItem(name: "device_id", value: directDeviceID),
+            URLQueryItem(name: "iid", value: directInstallID),
+            URLQueryItem(name: "cdid", value: ""),
+            URLQueryItem(name: "version_name", value: "3.3.0"),
+            URLQueryItem(name: "version_code", value: "30030000"),
+            URLQueryItem(name: "channel", value: "official"),
+            URLQueryItem(name: "build_mode", value: "master"),
+            URLQueryItem(name: "network_carrier", value: ""),
+            URLQueryItem(name: "ac", value: "wifi"),
+            URLQueryItem(name: "tz_name", value: "Asia/Shanghai"),
+            URLQueryItem(name: "resolution", value: ""),
+            URLQueryItem(name: "device_platform", value: "windows"),
+            URLQueryItem(name: "device_type", value: "Windows"),
+            URLQueryItem(name: "os_version", value: "Windows 11"),
+            URLQueryItem(name: "fp", value: directDeviceID),
+        ]
+        items.append(contentsOf: extra)
+        return items
+    }
+
+    /// 直连请求：返回完整响应根对象（不像网关那样只取 data），status_code 非 0 视为失败。
+    private func directRequestObject(
+        path: String,
+        queryItems: [URLQueryItem],
+        method: String = "GET",
+        jsonBody: [String: Any]? = nil,
+        lunaPCHeaders: Bool = false,
+        includeAuthCookie: Bool = false,
+        allowNonZeroStatus: Bool = false
+    ) async throws -> [String: Any] {
+        await warmUpDirectSessionIfNeeded()
+        guard var components = URLComponents(string: "https://api.qishui.com/" + path) else {
+            throw QishuiAPIError.invalidURL
+        }
+        if !queryItems.isEmpty { components.queryItems = queryItems }
+        guard let url = components.url else { throw QishuiAPIError.invalidURL }
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.timeoutInterval = 25
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        if lunaPCHeaders {
+            request.setValue(Self.lunaPCUserAgent, forHTTPHeaderField: "User-Agent")
+            request.setValue("foreground", forHTTPHeaderField: "x-luna-background-type")
+            request.setValue("0", forHTTPHeaderField: "x-luna-is-background-req")
+            request.setValue("1", forHTTPHeaderField: "x-luna-is-local-user")
+        } else {
+            request.setValue(Self.pcWebUserAgent, forHTTPHeaderField: "User-Agent")
+            request.setValue("https://www.qishui.com/", forHTTPHeaderField: "Referer")
+        }
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let jsonBody {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONSerialization.data(withJSONObject: jsonBody)
+        }
+        if includeAuthCookie {
+            let cookie = QishuiMusicAuth.shared.cookieHeader
+            if !cookie.isEmpty {
+                request.setValue(cookie, forHTTPHeaderField: "Cookie")
+            }
+        }
+        let (data, response) = try await directSession.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw QishuiAPIError.server("汽水音乐直连请求失败")
+        }
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw QishuiAPIError.invalidResponse
+        }
+        if !allowNonZeroStatus, let code = root["status_code"] as? NSNumber, code.intValue != 0 {
+            throw QishuiAPIError.server("汽水音乐直连返回失败")
+        }
+        return root
+    }
+
+    // MARK: 直连字段归一化
+
+    /// PC 搜索响应 result_groups[].data[].entity[key] 提取。
+    private func pcResultEntities(_ root: [String: Any], key: String) -> [[String: Any]] {
+        guard let groups = root["result_groups"] as? [[String: Any]] else { return [] }
+        var entities: [[String: Any]] = []
+        for group in groups {
+            for item in dictionaryArray(group["data"]) {
+                if let entity = dictionary(item["entity"]), let value = dictionary(entity[key]) {
+                    entities.append([key: value])
+                }
+            }
+        }
+        return entities
+    }
+
+    /// PC track 的 label_info VIP 标记对齐网关格式的 fee 字段，makeSong 据此打标。
+    private func normalizedPCTrack(_ track: [String: Any]) -> [String: Any] {
+        var result = track
+        if dictionaryArray(track["artists"]).isEmpty, let artist = dictionary(track["artist"]) {
+            result["artists"] = [artist]
+        }
+        if let label = dictionary(track["label_info"]) {
+            let vip = bool(label["only_vip_playable"]) || bool(label["only_vip_download"])
+                || bool(label["quality_only_vip_playable"]) || bool(label["quality_only_vip_download"])
+            if vip, track["fee"] == nil { result["fee"] = 1 }
+        }
+        return result
+    }
+
+    private func normalizedPCEntity(_ entity: [String: Any]) -> [String: Any] {
+        var result = entity
+        if var wrapper = dictionary(entity["track_wrapper"]), let track = dictionary(wrapper["track"]) {
+            wrapper["track"] = normalizedPCTrack(track)
+            result["track_wrapper"] = wrapper
+        } else if let track = dictionary(entity["track"]) {
+            result["track"] = normalizedPCTrack(track)
+        } else if entity["duration"] != nil {
+            result = normalizedPCTrack(entity)
+        }
+        return result
+    }
+
+    /// PC 歌单项的创建者与曲目数藏在 owner / resource_cnt 里，注入成 makePlaylist 认的字段。
+    private func normalizedPCPlaylist(_ playlist: [String: Any]) -> [String: Any] {
+        var result = playlist
+        if firstString(playlist, keys: ["creator_name", "creatorName", "nickname"]) == nil,
+           let owner = dictionary(playlist["owner"]),
+           let name = firstString(owner, keys: ["nickname", "public_name", "name"]) {
+            result["creator_name"] = name
+        }
+        if playlist["count_tracks"] == nil, let resource = dictionary(playlist["resource_cnt"]) {
+            result["count_tracks"] = Int(number(resource["track_cnt"]))
+        }
+        return result
+    }
+
+    // MARK: 直连搜索
+
+    private func directSearchSongs(
+        keyword: String,
+        targetCount: Int,
+        onPartialResults: (@MainActor ([Song]) -> Void)?
+    ) async throws -> [Song] {
+        let pageSize = 20
+        var songs: [Song] = []
+        var seen = Set<String>()
+        var cursor = 0
+        for _ in 0..<12 where songs.count < targetCount {
+            guard !Task.isCancelled else { throw CancellationError() }
+            let root = try await directRequestObject(
+                path: "luna/pc/search/track",
+                queryItems: directWebSearchItems(keyword: keyword, cursor: cursor, count: pageSize)
+            )
+            let entities = pcResultEntities(root, key: "track")
+            guard !entities.isEmpty else { break }
+            var added = 0
+            for entity in entities {
+                guard let song = makeSong(normalizedPCEntity(entity)),
+                      seen.insert(song.identityKey).inserted else { continue }
+                songs.append(song)
+                added += 1
+                if songs.count >= targetCount { break }
+            }
+            if added > 0, let onPartialResults {
+                await onPartialResults(Array(songs.prefix(targetCount)))
+            }
+            cursor += entities.count
+            if entities.count < pageSize { break }
+        }
+        return Array(songs.prefix(targetCount))
+    }
+
+    private func directSearchPlaylists(keyword: String, limit: Int) async throws -> [Playlist] {
+        let pageSize = 20
+        var playlists: [Playlist] = []
+        var seen = Set<Int>()
+        var cursor = 0
+        for _ in 0..<6 where playlists.count < limit {
+            guard !Task.isCancelled else { throw CancellationError() }
+            let root = try await directRequestObject(
+                path: "luna/pc/search/playlist",
+                queryItems: directWebSearchItems(keyword: keyword, cursor: cursor, count: pageSize)
+            )
+            let entities = pcResultEntities(root, key: "playlist")
+            guard !entities.isEmpty else { break }
+            for entity in entities {
+                guard let raw = dictionary(entity["playlist"]),
+                      let playlist = makePlaylist(normalizedPCPlaylist(raw)),
+                      seen.insert(playlist.id).inserted else { continue }
+                playlists.append(playlist)
+                if playlists.count >= limit { break }
+            }
+            cursor += entities.count
+            if entities.count < pageSize { break }
+        }
+        return Array(playlists.prefix(limit))
+    }
+
+    private func directSearchAlbums(keyword: String, limit: Int) async throws -> [Album] {
+        let root = try await directRequestObject(
+            path: "luna/pc/search/album",
+            queryItems: directWebSearchItems(keyword: keyword, cursor: 0, count: max(limit, 20))
+        )
+        var albums: [Album] = []
+        var seen = Set<String>()
+        for entity in pcResultEntities(root, key: "album") {
+            guard let raw = dictionary(entity["album"]),
+                  let identifier = firstString(raw, keys: ["id"]),
+                  !identifier.isEmpty,
+                  seen.insert(identifier).inserted,
+                  let name = firstString(raw, keys: ["name"]), !name.isEmpty else { continue }
+            let artistText = dictionaryArray(raw["artists"])
+                .compactMap { firstString($0, keys: ["name", "simple_display_name"]) }
+                .joined(separator: " / ")
+            var releaseDate: String?
+            let timestamp = number(raw["release_date"])
+            if timestamp > 0 {
+                let formatter = DateFormatter()
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.dateFormat = "yyyy-MM-dd"
+                releaseDate = formatter.string(from: Date(timeIntervalSince1970: timestamp))
+            }
+            albums.append(Album(
+                id: "qishui-album-\(Self.stableID(identifier))",
+                name: name,
+                artistName: artistText,
+                coverURL: QishuiResourceURL.first(in: raw["url_cover"]),
+                source: .qishui,
+                trackCount: Int(number(raw["count_tracks"])),
+                releaseDate: releaseDate
+            ))
+            if albums.count >= limit { break }
+        }
+        return albums
+    }
+
+    // MARK: 直连歌单
+
+    private func directPlaylistDetails(
+        id: String,
+        targetCount: Int,
+        onPartialSongs: (@MainActor ([Song]) -> Void)?
+    ) async throws -> QishuiPlaylistDetails {
+        let pageSize = 100
+        var playlist: Playlist?
+        var songs: [Song] = []
+        var seen = Set<String>()
+        var seenCursors = Set<String>()
+        var cursor = "0"
+        for _ in 0..<20 where songs.count < targetCount {
+            guard !Task.isCancelled else { throw CancellationError() }
+            let root = try await directRequestObject(
+                path: "luna/pc/playlist/detail",
+                queryItems: directAppItems(extra: [
+                    URLQueryItem(name: "playlist_id", value: id),
+                    URLQueryItem(name: "cursor", value: cursor),
+                    URLQueryItem(name: "count", value: String(pageSize)),
+                ]),
+                lunaPCHeaders: true,
+                includeAuthCookie: true
+            )
+            if playlist == nil, let rawPlaylist = dictionary(root["playlist"]) {
+                playlist = makePlaylist(normalizedPCPlaylist(rawPlaylist))
+            }
+            let resources = dictionaryArray(root["media_resources"])
+            guard !resources.isEmpty else { break }
+            var added = 0
+            for resource in resources {
+                let entity = dictionary(resource["entity"]) ?? resource
+                guard let song = makeSong(normalizedPCEntity(entity)),
+                      seen.insert(song.identityKey).inserted else { continue }
+                songs.append(song)
+                added += 1
+                if songs.count >= targetCount { break }
+            }
+            if added > 0, let onPartialSongs {
+                await onPartialSongs(Array(songs.prefix(targetCount)))
+            }
+            let nextCursor = firstString(root, keys: ["next_cursor"]) ?? ""
+            let hasMore = bool(root["has_more"])
+            guard !nextCursor.isEmpty, seenCursors.insert(nextCursor).inserted else { break }
+            cursor = nextCursor
+            if !hasMore, added < pageSize { break }
+        }
+        return QishuiPlaylistDetails(playlist: playlist, songs: Array(songs.prefix(targetCount)))
+    }
+
+    private func directRecommendedPlaylists(limit: Int) async throws -> [Playlist] {
+        let root = try await directRequestObject(
+            path: "luna/pc/discover/mix",
+            queryItems: directAppItems(extra: []),
+            method: "POST",
+            jsonBody: [
+                "block_type": "discover_playlist_mix",
+                "feed_discover_extra": [String: Any](),
+                "latest_douyin_liked_playlist_show_ts": 0,
+                "sub_channel_id": 0,
+            ],
+            lunaPCHeaders: true,
+            includeAuthCookie: true
+        )
+        var playlists: [Playlist] = []
+        var seen = Set<Int>()
+        for block in dictionaryArray(root["inner_block"]) {
+            for resource in dictionaryArray(block["resources"]) {
+                guard let entity = dictionary(resource["entity"]),
+                      let raw = dictionary(entity["playlist"]),
+                      let playlist = makePlaylist(normalizedPCPlaylist(raw)),
+                      seen.insert(playlist.id).inserted else { continue }
+                playlists.append(playlist)
+                if playlists.count >= limit { return playlists }
+            }
+        }
+        return playlists
+    }
+
+    // MARK: 直连歌词
+
+    private func directLyric(trackID: String) async throws -> String? {
+        // 1) PC track_v2 详情自带歌词（qishui-api trackDetail）。music-lib 注明
+        //    该端点已下线，失败会直接落到下面的 seo_track，不影响结果。
+        if let root = try? await directRequestObject(
+            path: "luna/pc/track_v2",
+            queryItems: directAppItems(extra: [
+                URLQueryItem(name: "track_id", value: trackID),
+                URLQueryItem(name: "media_type", value: "track"),
+                URLQueryItem(name: "queue_type", value: ""),
+            ]),
+            lunaPCHeaders: true,
+            includeAuthCookie: true
+        ), let text = lyricText(in: root) {
+            return text
+        }
+        // 2) H5 seo_track（music-lib 现行歌词路线，无需签名）：lyric.content。
+        let root = try await directRequestObject(
+            path: "luna/h5/seo_track",
+            queryItems: [
+                URLQueryItem(name: "track_id", value: trackID),
+                URLQueryItem(name: "device_platform", value: "web"),
+            ]
+        )
+        return lyricText(in: root)
+    }
+
+    private func lyricText(in root: [String: Any]) -> String? {
+        var lyricObjects: [[String: Any]] = []
+        if let lyric = dictionary(root["lyric"]) { lyricObjects.append(lyric) }
+        if let seo = dictionary(root["seo_track"]), let lyric = dictionary(seo["lyric"]) {
+            lyricObjects.append(lyric)
+        }
+        if let player = dictionary(root["track_player"]), let lyric = dictionary(player["lyric"]) {
+            lyricObjects.append(lyric)
+        }
+        for object in lyricObjects {
+            if let text = firstString(object, keys: ["content", "lyric", "text"]), !text.isEmpty {
+                return Self.convertQishuiLyric(text)
+            }
+        }
+        return nil
+    }
+
+    /// 汽水歌词是逐字格式：[开始毫秒,时长毫秒]歌词<逐字标签>，转成现有歌词
+    /// 管线能吃的标准 LRC（与 music-lib parseSodaLyric 同规则）；已是标准
+    /// LRC 的行原样保留。
+    static func convertQishuiLyric(_ raw: String) -> String {
+        var output: [String] = []
+        for rawLine in raw.components(separatedBy: "\n") {
+            let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !line.isEmpty, line.hasPrefix("["), let close = line.firstIndex(of: "]") else { continue }
+            let header = String(line[line.index(after: line.startIndex)..<close])
+            let content = String(line[line.index(after: close)...])
+            let parts = header.split(separator: ",")
+            if parts.count >= 2, let startMs = Int(parts[0]) {
+                let clean = content.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+                let minutes = startMs / 60000
+                let seconds = (startMs % 60000) / 1000
+                let centis = (startMs % 1000) / 10
+                output.append(String(format: "[%02d:%02d.%02d]", minutes, seconds, centis) + clean)
+            } else if header.contains(":") {
+                output.append(line)
+            }
+        }
+        return output.joined(separator: "\n")
+    }
+
+    // MARK: 直连评论
+
+    private func directComments(trackID: String, limit: Int) async throws -> NetEaseAPI.SongCommentPage {
+        let root = try await directRequestObject(
+            path: "luna/comments",
+            queryItems: [
+                URLQueryItem(name: "group_id", value: trackID),
+                URLQueryItem(name: "cursor", value: ""),
+                URLQueryItem(name: "count", value: String(min(max(limit, 1), 50))),
+                URLQueryItem(name: "group_type", value: "track"),
+                URLQueryItem(name: "image_strategy", value: "tplv-luna-shrink:200:200"),
+                URLQueryItem(name: "sort_type", value: "hot"),
+                URLQueryItem(name: "aid", value: "386088"),
+                URLQueryItem(name: "device_platform", value: "web"),
+            ],
+            includeAuthCookie: true
+        )
+        let rawComments = dictionaryArray(root["comments"] ?? root["data"] ?? root["comment_list"])
+        guard !rawComments.isEmpty else { throw QishuiAPIError.invalidResponse }
+        let comments = rawComments.compactMap { raw -> SongComment? in
+            let user = dictionary(raw["user"]) ?? dictionary(raw["user_info"]) ?? [:]
+            let content = firstString(raw, keys: ["content", "text", "comment_text"]) ?? ""
+            guard !content.isEmpty else { return nil }
+            let idText = firstString(raw, keys: ["id", "comment_id", "commentId"]) ?? UUID().uuidString
+            let nickname = firstString(user, keys: ["nickname", "name", "user_name"])
+                ?? firstString(raw, keys: ["user_name", "nickname"]) ?? "汽水用户"
+            let avatar = QishuiResourceURL.first(in: user["avatar_url"] ?? user["avatar_thumb"] ?? user["avatar"])
+                ?? firstString(raw, keys: ["user_avatar", "avatar_url"]).flatMap(URL.init(string:))
+            let timestamp = number(raw["create_time"] ?? raw["timestamp"] ?? raw["time"])
+            let seconds = timestamp > 10_000_000_000 ? timestamp / 1_000 : timestamp
+            return SongComment(
+                id: Self.stableID(idText),
+                content: content,
+                nickname: nickname,
+                avatarURL: avatar,
+                time: Date(timeIntervalSince1970: seconds > 0 ? seconds : Date().timeIntervalSince1970),
+                likedCount: Int(number(raw["digg_count"] ?? raw["like_count"] ?? raw["likeCount"])),
+                isHot: false
+            )
+        }
+        let total = Int(number(root["total"] ?? root["total_count"]))
+        return NetEaseAPI.SongCommentPage(
+            total: total > 0 ? total : comments.count,
+            hot: [],
+            comments: comments
+        )
+    }
+
+    // MARK: 每日推荐
+
+    /// 汽水每日推荐：POST /luna/feed/song-tab（qishui-api dailyMix）。
+    /// 该端点可能要求 App 上下文（status_code 1000006）；匿名先直连，
+    /// 登录后自动带 Cookie。取不到就返回空，首页保持原来的无推荐状态。
+    func dailySongs(limit: Int = 30) async -> [Song] {
+        guard let root = try? await directRequestObject(
+            path: "luna/feed/song-tab",
+            queryItems: directAppItems(extra: []),
+            method: "POST",
+            jsonBody: [:],
+            lunaPCHeaders: true,
+            includeAuthCookie: true,
+            allowNonZeroStatus: true
+        ) else { return [] }
+        if let code = root["status_code"] as? NSNumber, code.intValue == 1000006 {
+            return []
+        }
+        var songs: [Song] = []
+        var seen = Set<String>()
+        collectDirectTracks(in: root, into: &songs, seen: &seen, limit: limit)
+        return songs
+    }
+
+    /// feed 响应结构不固定，递归找 entity / track_wrapper / 裸 track 并映射。
+    private func collectDirectTracks(in object: Any, into songs: inout [Song], seen: inout Set<String>, limit: Int) {
+        guard songs.count < limit else { return }
+        if let dict = object as? [String: Any] {
+            if let entity = dictionary(dict["entity"]),
+               let song = makeSong(normalizedPCEntity(entity)),
+               seen.insert(song.identityKey).inserted {
+                songs.append(song)
+            }
+            if dict["track_wrapper"] != nil || dict["track"] != nil
+                || (dict["id"] != nil && dict["name"] != nil && dict["duration"] != nil) {
+                if let song = makeSong(normalizedPCEntity(dict)),
+                   seen.insert(song.identityKey).inserted {
+                    songs.append(song)
+                }
+            }
+            for value in dict.values {
+                collectDirectTracks(in: value, into: &songs, seen: &seen, limit: limit)
+                if songs.count >= limit { return }
+            }
+        } else if let array = object as? [Any] {
+            for value in array {
+                collectDirectTracks(in: value, into: &songs, seen: &seen, limit: limit)
+                if songs.count >= limit { return }
+            }
+        }
+    }
+
+    // MARK: 登录态（我的歌单 / 个人信息）
+
+    /// 我的汽水歌单：GET /luna/pc/me/playlist（qishui-api mePlaylists，需登录
+    /// Cookie）；拿不到再走 /luna/pc/me 取 user_id 后 /luna/pc/user/playlist
+    /// 分页（music-lib 路线）。未登录直接返回空。
+    func userPlaylists() async -> [Playlist] {
+        guard QishuiMusicAuth.shared.isLoggedIn else { return [] }
+        var playlists: [Playlist] = []
+        var seen = Set<Int>()
+        func appendItems(_ items: [[String: Any]]) {
+            for item in items {
+                guard let playlist = makePlaylist(normalizedPCPlaylist(item)),
+                      seen.insert(playlist.id).inserted else { continue }
+                playlists.append(playlist)
+            }
+        }
+        if let root = try? await directRequestObject(
+            path: "luna/pc/me/playlist",
+            queryItems: [
+                URLQueryItem(name: "aid", value: "386088"),
+                URLQueryItem(name: "iid", value: QishuiMusicAuth.shared.passportInstallID),
+                URLQueryItem(name: "version_code", value: "30020100"),
+            ],
+            lunaPCHeaders: true,
+            includeAuthCookie: true
+        ) {
+            appendItems(dictionaryArray(root["playlists"] ?? root["data"]))
+        }
+        if playlists.isEmpty,
+           let me = try? await directRequestObject(
+               path: "luna/pc/me",
+               queryItems: [URLQueryItem(name: "aid", value: "386088")],
+               lunaPCHeaders: true,
+               includeAuthCookie: true
+           ),
+           let info = dictionary(me["my_info"]),
+           let userID = firstString(info, keys: ["id"]) {
+            var cursor: String?
+            for _ in 0..<10 {
+                var items = directAppItems(extra: [
+                    URLQueryItem(name: "user_id", value: userID),
+                    URLQueryItem(name: "count", value: "50"),
+                ])
+                if let cursor { items.append(URLQueryItem(name: "cursor", value: cursor)) }
+                guard let page = try? await directRequestObject(
+                    path: "luna/pc/user/playlist",
+                    queryItems: items,
+                    lunaPCHeaders: true,
+                    includeAuthCookie: true
+                ) else { break }
+                appendItems(dictionaryArray(page["playlists"] ?? page["data"]))
+                let next = firstString(page, keys: ["next_cursor"])
+                guard bool(page["has_more"]), let next, !next.isEmpty else { break }
+                cursor = next
+            }
+        }
+        return playlists
+    }
+
+    /// 登录后刷新昵称 / 头像 / user_id 存进 QishuiMusicAuth。
+    func refreshProfile() async {
+        guard QishuiMusicAuth.shared.isLoggedIn else { return }
+        guard let root = try? await directRequestObject(
+            path: "luna/pc/me",
+            queryItems: [URLQueryItem(name: "aid", value: "386088")],
+            lunaPCHeaders: true,
+            includeAuthCookie: true
+        ), let info = dictionary(root["my_info"]) else { return }
+        QishuiMusicAuth.shared.updateProfile(
+            userID: firstString(info, keys: ["id"]) ?? "",
+            nickname: firstString(info, keys: ["nickname", "name"]) ?? "",
+            avatar: QishuiResourceURL.first(in: info["larger_avatar_url"] ?? info["avatar_url"])?.absoluteString ?? ""
+        )
+    }
+
+    // MARK: 扫码登录（passport）
+
+    /// passport 公共参数（qishui-api PASSPORT_FIXED + music-lib base values）。
+    private func passportQueryItems(extra: [URLQueryItem] = []) -> [URLQueryItem] {
+        var items = [
+            URLQueryItem(name: "passport_jssdk_version", value: "2.4.13"),
+            URLQueryItem(name: "passport_jssdk_type", value: "normal"),
+            URLQueryItem(name: "is_from_ttaccountsdk", value: "1"),
+            URLQueryItem(name: "aid", value: "386088"),
+            URLQueryItem(name: "language", value: "zh"),
+            URLQueryItem(name: "is_new_login", value: "1"),
+            URLQueryItem(name: "device_id", value: QishuiMusicAuth.shared.passportDeviceID),
+            URLQueryItem(name: "iid", value: QishuiMusicAuth.shared.passportInstallID),
+            URLQueryItem(name: "device_platform", value: "PC"),
+            URLQueryItem(name: "version_code", value: "30020100"),
+        ]
+        items.append(contentsOf: extra)
+        return items
+    }
+
+    /// GET /passport/web/get_qrcode/：拿 token 与二维码内容（data.qrcode，
+    /// 兜底 qrcode_index_url / web_url），并保存响应下发的 Cookie 供轮询使用。
+    func createQRCode() async throws -> QishuiQRCodeSession {
+        await warmUpDirectSessionIfNeeded()
+        guard var components = URLComponents(string: "https://api.qishui.com/passport/web/get_qrcode/") else {
+            throw QishuiAPIError.invalidURL
+        }
+        components.queryItems = passportQueryItems(extra: [
+            URLQueryItem(name: "next", value: "https://api.qishui.com"),
+            URLQueryItem(name: "need_logo", value: "false"),
+            URLQueryItem(name: "need_short_url", value: "false"),
+        ])
+        guard let url = components.url else { throw QishuiAPIError.invalidURL }
+        var request = URLRequest(url: url)
+        request.setValue(Self.passportUserAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("application/json, text/javascript", forHTTPHeaderField: "Accept")
+        request.setValue("https://api.qishui.com/", forHTTPHeaderField: "Referer")
+        let (data, response) = try await directSession.data(for: request)
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let payload = dictionary(root["data"]) ?? root,
+              let token = firstString(payload, keys: ["token"]), !token.isEmpty else {
+            throw QishuiAPIError.invalidResponse
+        }
+        let qrContent = firstString(payload, keys: ["qrcode", "qrcode_index_url", "web_url"]) ?? ""
+        guard !qrContent.isEmpty else { throw QishuiAPIError.invalidResponse }
+        return QishuiQRCodeSession(
+            token: token,
+            qrContent: qrContent,
+            cookieHeader: Self.responseCookieHeader(response, for: url)
+        )
+    }
+
+    /// POST /passport/web/check_qrconnect/ 轮询。状态语义对齐 music-lib：
+    /// new = 等待扫码，scanned / confirmed = 已扫码（confirmed 后继续轮询等
+    /// 会话 Cookie 下发），expired = 过期，error_code 7 = 限频（继续轮询），
+    /// error_code 2046 / account_flow=verify = 需要短信验证（本版不支持）。
+    /// 成功判据：合并 Cookie 里出现 sessionid。
+    func checkQRCode(session: QishuiQRCodeSession) async throws -> QishuiQRCodeStatus {
+        guard var components = URLComponents(string: "https://api.qishui.com/passport/web/check_qrconnect/") else {
+            throw QishuiAPIError.invalidURL
+        }
+        components.queryItems = passportQueryItems()
+        guard let url = components.url else { throw QishuiAPIError.invalidURL }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(Self.passportUserAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("https://api.qishui.com/", forHTTPHeaderField: "Referer")
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        if !session.cookieHeader.isEmpty {
+            request.setValue(session.cookieHeader, forHTTPHeaderField: "Cookie")
+        }
+        request.httpBody = Self.formEncoded([
+            ("token", session.token),
+            ("next", "https://api.qishui.com"),
+            ("need_logo", "false"),
+            ("need_short_url", "false"),
+            ("is_frontier", "true"),
+            ("is_new_login", "1"),
+        ])
+        let (data, response) = try await directSession.data(for: request)
+        let stored = (HTTPCookieStorage.shared.cookies(for: url) ?? [])
+            .map { "\($0.name)=\($0.value)" }
+            .joined(separator: "; ")
+        let merged = Self.mergedCookieHeader([
+            session.cookieHeader,
+            Self.responseCookieHeader(response, for: url),
+            stored,
+        ])
+        let cookiePairs = merged.split(separator: ";").map { $0.trimmingCharacters(in: .whitespaces) }
+        if cookiePairs.contains(where: { $0.hasPrefix("sessionid=") || $0.hasPrefix("sessionid_ss=") }) {
+            return .success(cookie: merged)
+        }
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return .waiting
+        }
+        let payload = dictionary(root["data"]) ?? root
+        let status = (firstString(payload, keys: ["status"]) ?? "").lowercased()
+        let errorCode = Int(number(payload["error_code"]))
+        let accountFlow = (firstString(payload, keys: ["account_flow"]) ?? "").lowercased()
+        if accountFlow == "verify" || errorCode == 2046 {
+            return .verifyRequired
+        }
+        if errorCode == 7 {
+            return .waiting
+        }
+        switch status {
+        case "scanned", "confirmed":
+            return .scanned
+        case "expired":
+            return .expired
+        case "error", "failed":
+            return .failed(firstString(payload, keys: ["description"]) ?? firstString(root, keys: ["message"]) ?? "登录失败")
+        default:
+            if errorCode != 0 {
+                return .failed(firstString(payload, keys: ["description"]) ?? firstString(root, keys: ["message"]) ?? "登录失败")
+            }
+            return .waiting
+        }
+    }
+
+    private static func formEncoded(_ pairs: [(String, String)]) -> Data {
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
+        func escape(_ value: String) -> String {
+            value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
+        }
+        return pairs.map { "\(escape($0.0))=\(escape($0.1))" }
+            .joined(separator: "&")
+            .data(using: .utf8) ?? Data()
+    }
+
+    private static func responseCookieHeader(_ response: URLResponse?, for url: URL) -> String {
+        guard let http = response as? HTTPURLResponse,
+              let fields = http.allHeaderFields as? [String: String] else { return "" }
+        return HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
+            .map { "\($0.name)=\($0.value)" }
+            .joined(separator: "; ")
+    }
+
+    private static func mergedCookieHeader(_ headers: [String]) -> String {
+        var pairs: [(String, String)] = []
+        var indexByName: [String: Int] = [:]
+        for header in headers {
+            for part in header.split(separator: ";") {
+                let pair = part.trimmingCharacters(in: .whitespaces)
+                guard let eq = pair.firstIndex(of: "=") else { continue }
+                let name = String(pair[..<eq])
+                let value = String(pair[pair.index(after: eq)...])
+                if let index = indexByName[name] {
+                    pairs[index] = (name, value)
+                } else {
+                    indexByName[name] = pairs.count
+                    pairs.append((name, value))
+                }
+            }
+        }
+        return pairs.map { "\($0.0)=\($0.1)" }.joined(separator: "; ")
     }
 }

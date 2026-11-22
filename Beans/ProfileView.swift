@@ -1620,6 +1620,7 @@ struct AccountHubSheet: View {
     @ObservedObject private var qqAuth = QQMusicAuth.shared
     @ObservedObject private var kugouAuth = KugouMusicAuth.shared
     @ObservedObject private var bilibiliAuth = BilibiliAuth.shared
+    @ObservedObject private var qishuiAuth = QishuiMusicAuth.shared
     @ObservedObject private var platformPrefs = PlatformPreferenceStore.shared
     @AppStorage("beans.language") private var languageRaw = AppLanguage.chinese.rawValue
     @Environment(\.dismiss) private var dismiss
@@ -1628,10 +1629,12 @@ struct AccountHubSheet: View {
     @State private var showQQLogin = false
     @State private var showKugouLogin = false
     @State private var showBilibiliLogin = false
+    @State private var showQishuiLogin = false
     @State private var confirmNeteaseLogout = false
     @State private var confirmQQLogout = false
     @State private var confirmKugouLogout = false
     @State private var confirmBilibiliLogout = false
+    @State private var confirmQishuiLogout = false
 
     private var isEnglish: Bool { languageRaw == AppLanguage.english.rawValue }
     private var displayPlatformSummary: String {
@@ -1660,6 +1663,7 @@ struct AccountHubSheet: View {
                         if platformPrefs.isEnabled(SearchProvider.bilibili) {
                             bilibiliCard
                         }
+                        if platformPrefs.isEnabled(SearchProvider.qishui) { qishuiCard }
                     }
                     .padding(16)
                 }
@@ -1688,6 +1692,16 @@ struct AccountHubSheet: View {
         }
         .sheet(isPresented: $showBilibiliLogin) {
             BilibiliLoginSheet().environmentObject(theme)
+        }
+        .sheet(isPresented: $showQishuiLogin) {
+            QishuiLoginSheet().environmentObject(theme)
+        }
+        .confirmationDialog("退出汽水音乐？", isPresented: $confirmQishuiLogout, titleVisibility: .visible) {
+            Button("退出登录", role: .destructive) {
+                qishuiAuth.logout()
+                ToastCenter.shared.show("已退出汽水音乐")
+            }
+            Button("取消", role: .cancel) {}
         }
         .confirmationDialog("退出网易云登录？", isPresented: $confirmNeteaseLogout, titleVisibility: .visible) {
             Button("退出登录", role: .destructive) {
@@ -1907,6 +1921,42 @@ struct AccountHubSheet: View {
                 Text(bilibiliAuth.isLoggedIn ? "退出" : "登录")
                     .font(BeansFont.appFont(13, .medium))
                     .foregroundStyle(bilibiliAuth.isLoggedIn ? Color.red : Color.beansAmber)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background { BeansSurface(shape: Capsule()) }
+            }
+            .padding(14)
+            .background { BeansGlass(shape: RoundedRectangle(cornerRadius: 20, style: .continuous)) }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(GlassPressButtonStyle(scale: 0.97))
+    }
+
+    private var qishuiCard: some View {
+        Button {
+            BeansHaptics.tap()
+            if qishuiAuth.isLoggedIn { confirmQishuiLogout = true } else { showQishuiLogin = true }
+        } label: {
+            HStack(spacing: 14) {
+                Image("BrandQishui")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 48, height: 48)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("汽水音乐")
+                        .font(BeansFont.appFont(15, .semibold))
+                        .foregroundStyle(Color.beansLabel)
+                    Text(qishuiAuth.isLoggedIn ? (qishuiAuth.nickname.isEmpty ? "已登录" : qishuiAuth.nickname) : "未登录 · 扫码同步歌单")
+                        .font(BeansFont.appFont(12))
+                        .foregroundStyle(Color.beansComment)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                }
+                Spacer()
+                Text(qishuiAuth.isLoggedIn ? "退出" : "登录")
+                    .font(BeansFont.appFont(13, .medium))
+                    .foregroundStyle(qishuiAuth.isLoggedIn ? Color.red : Color.beansAmber)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 6)
                     .background { BeansSurface(shape: Capsule()) }

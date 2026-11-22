@@ -279,6 +279,11 @@ struct DiscoverView: View {
                 guard platformPrefs.isEnabled(SearchProvider.kugou) else { return }
                 reloadAfterLoginUpdate(.kugou)
             }
+            .onReceive(NotificationCenter.default.publisher(for: .beansQishuiLoginDidUpdate)) { _ in
+                guard !homeRenderingPaused else { return }
+                guard platformPrefs.isEnabled(SearchProvider.qishui) else { return }
+                reloadAfterLoginUpdate(.qishui)
+            }
             .sheet(isPresented: $showSectionSort) {
                 SectionOrderSheet(
                     title: "主页板块排序",
@@ -2096,7 +2101,10 @@ struct DiscoverView: View {
             snapshot.topArtists = topArtists
             snapshot.personalized = personalized
         case .qishui:
-            break
+            // 每日推荐走直连 feed/song-tab（登录后带 Cookie，匿名先直连试），
+            // 推荐歌单走直连 discover/mix；都取不到时保持空，不打断首页。
+            snapshot.dailySongs = await QishuiAPI.shared.dailySongs(limit: 30)
+            snapshot.personalized = (try? await QishuiAPI.shared.recommendedPlaylists(limit: 18)) ?? []
         case .bilibili:
             // Bilibili has its own native browse surface. Keep its videos out
             // of the generic music精选 page.
@@ -2483,8 +2491,8 @@ struct DailySongsSheet: View {
             )
         case .qishui:
             return beansLocalized(
-                "汽水音乐暂不提供每日推荐。",
-                "Qishui daily recommendations are unavailable."
+                "根据你的听歌偏好，为你整理的汽水音乐每日推荐歌曲。",
+                "Daily song picks from Qishui Music based on your listening preferences."
             )
         case .bilibili:
             return beansLocalized(
