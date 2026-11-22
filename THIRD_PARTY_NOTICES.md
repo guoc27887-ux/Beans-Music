@@ -164,3 +164,48 @@ The full upstream GPL-3.0 text is retained verbatim in
 `Beans/Resources/CiliCili-LICENSE.txt`, with attribution and source retrieval
 information in `Beans/Resources/CiliCili-NOTICE.md`; both are included in the IPA.
 
+## MeloX feature ports
+
+The following features were ported from [MeloX](https://github.com/youshen2/MeloX)
+by youshen2, licensed under the GNU General Public License v3.0 (the same
+project and license as the "一起听" Listen Together port):
+
+- 网易云私信与联系人 — `Beans/NetEaseSocialAPI.swift`, `Beans/NetEaseMessagesView.swift`
+  (from MeloX `Core/Networking/NeteaseSocialAPI.swift`,
+  `Features/Messages/NeteasePrivateMessagesView.swift`)
+- 音乐云盘（列表、播放、删除、上传） — `Beans/NetEaseCloudView.swift`
+  (from MeloX `Features/Cloud/CloudMusicView.swift`, `Core/Cloud/CloudMusicStore.swift`)
+- 网易云收藏专辑 / 关注歌手 — `Beans/NetEaseSubscriptionsView.swift` 及歌手页关注按钮
+  (from MeloX `Core/Networking/NeteaseAPI+AlbumSubscriptions.swift`,
+  `NeteaseAPI+ArtistSubscriptions.swift`)
+- 听歌识曲 — `Beans/SongRecognitionCore.swift`, `Beans/SongRecognitionView.swift`
+  (from MeloX `Features/SongRecognition/`,
+  `Core/Settings/Recognition/SongRecognitionPreferences.swift`)
+- 剪贴板网易云链接识别 — `Beans/ClipboardLinkRecognition.swift`
+  (from MeloX `App/ClipboardLinkRecognition.swift`)
+- 对唱歌词分行 — `Beans/Folia/Runtime/FoliaLyricDuet.swift`
+  (from MeloX `Core/Lyrics/LyricDuetParser.swift`; presentation adapted to
+  the Folia Classic / Still lyric renderers)
+
+## Kumone-informed NetEase behaviors
+
+The following behaviors were implemented for Beans by referencing the API
+endpoints and behavior logic of [Kumone](https://github.com/missuo/kumone)
+by missuo (LGPL-3.0). No Kumone code was copied; the implementations are
+original to Beans and run on Beans' own networking and player:
+
+- 雷达歌单 — `Beans/NetEaseEngagementAPI.swift`, `Beans/PlaylistSquareView.swift`
+  (the four fixed radar playlist IDs and the "|"-separated name splitting,
+  cf. Kumone `HomeViewModel.radarPlaylistIDs`)
+- 听歌上报 (scrobble) — `Beans/NetEaseScrobbleReporter.swift`
+  (the `startplay` / `play` weblog payloads sent to `/api/feedback/weblog`,
+  cf. Kumone `MusicAPI.scrobbleStart` / `scrobbleFinish`)
+
+## Netease audio fingerprint (AFP)
+
+The song-recognition fingerprint generator under
+`Beans/Resources/AudioFingerprint/` (`afp.js`, `afp.wasm.js`) comes from the
+NeteaseCloudMusic API ecosystem (`@neteaseapireborn/api`, MIT License — see
+`NeteaseAPI-LICENSE.txt` in that folder) and is used the same way MeloX uses
+it. See `NeteaseAudioFingerprint-NOTICE.txt` in that folder for provenance.
+

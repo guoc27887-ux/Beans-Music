@@ -26,6 +26,8 @@ struct PlaylistSquareView: View {
     @State private var neteaseOffset = 0
     @State private var isLoadingMore = false
     @State private var showPlaylistPlatformMenu = false
+    /// 网易云雷达歌单（按账号生成，登录后才有），与推荐歌单同页展示
+    @State private var radarPlaylists: [Playlist] = []
 
     private let neteasePageSize = 30
 
@@ -124,6 +126,9 @@ struct PlaylistSquareView: View {
                                 EmptyStateView(icon: "music.note.list", text: emptyText)
                                     .frame(maxWidth: .infinity, minHeight: 220)
                             } else {
+                                if source == .netease, auth.isLoggedIn, !radarPlaylists.isEmpty {
+                                    radarSection
+                                }
                                 playlistGrid
                                 if source == .netease {
                                     neteaseLoadMoreFooter
@@ -146,6 +151,9 @@ struct PlaylistSquareView: View {
                 }
                 .task(id: source.rawValue) {
                     await loadCategories()
+                }
+                .task(id: "\(source.rawValue)-radar-\(auth.isLoggedIn)") {
+                    await loadRadar()
                 }
                 .onReceive(platformPrefs.changes) { _ in
                     if !providers.contains(source) {
@@ -254,6 +262,33 @@ struct PlaylistSquareView: View {
                 }
             }
         }
+    }
+
+    /// 雷达歌单区块：与推荐歌单同页并列，卡片样式与广场歌单卡一致，
+    /// 横向滚动一行放下 4 个雷达（私人 / 华语 / 欧美 / 日系）。
+    private var radarSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: beansLocalized("雷达歌单", "Radar Playlists"))
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(alignment: .top, spacing: 14) {
+                    ForEach(radarPlaylists) { playlist in
+                        NavigationLink(destination: PlaylistView(playlist: playlist)) {
+                            playlistCard(playlist)
+                        }
+                        .buttonStyle(GlassPressButtonStyle(scale: 0.97))
+                    }
+                }
+            }
+        }
+    }
+
+    /// 雷达歌单只对登录的网易云账号生成；未登录或非网易云源时清空不展示。
+    private func loadRadar() async {
+        guard source == .netease, auth.isLoggedIn else {
+            radarPlaylists = []
+            return
+        }
+        radarPlaylists = await NetEaseAPI.shared.radarPlaylists()
     }
 
     private var playlistGrid: some View {

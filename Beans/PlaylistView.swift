@@ -22,6 +22,9 @@ struct PlaylistView: View {
     @State private var sortMode: PlaylistSortMode = .original
     @State private var showBatchDownload = false
     @State private var showPlaylistDescription = false
+    /// 网易云歌单订阅状态（收藏他人歌单）：nil 表示不适用或尚未查到。
+    @State private var playlistSubscribed: Bool?
+    @State private var subscribeBusy = false
     @AppStorage(BeansImmersiveDetailHeader.enabledKey) private var immersiveDetail = true
     @AppStorage("beans.homeHeaderHideSort") private var hideSortButton = false
     @AppStorage("beans.uiStyle") private var uiStyleRaw = BeansUIStyle.liquid.rawValue
@@ -122,6 +125,7 @@ struct PlaylistView: View {
             .navigationBarTitleDisplayMode(.inline)
             .beansDetailProfileToolbar()
         .task { await load() }
+        .task { await loadSubscriptionState() }
         .sheet(isPresented: $showBatchDownload) {
             BatchDownloadSheet(songs: displayedTracks, title: "下载歌单")
                 .environmentObject(theme)
@@ -190,6 +194,16 @@ struct PlaylistView: View {
                     if !displayedTracks.isEmpty {
                         player.play(songs: displayedTracks, startAt: Int.random(in: 0..<displayedTracks.count))
                     }
+                }
+                if let subscribed = playlistSubscribed {
+                    GlassButton(
+                        title: subscribed ? "已收藏" : "收藏",
+                        systemName: subscribed ? "bookmark.fill" : "bookmark",
+                        forceLiquid: true
+                    ) {
+                        Task { await togglePlaylistSubscription() }
+                    }
+                    .disabled(subscribeBusy)
                 }
             }
             if tracks.count > 1 {
@@ -307,6 +321,36 @@ struct PlaylistView: View {
 
     private func playbackIndex(for song: Song) -> Int {
         orderedTracks.firstIndex { $0.identityKey == song.identityKey } ?? 0
+    }
+
+    // MARK: - 网易云歌单订阅（收藏他人歌单）
+
+    /// 状态与账号实际订阅同步：查歌单详情的 subscribed / userId；
+    /// 自己创建的歌单不展示收藏按钮。
+    private func loadSubscriptionState() async {
+        guard playlist.source == .netease, auth.isLoggedIn,
+              let uid = auth.user?.uid, uid > 0 else { return }
+        do {
+            let state = try await NetEaseAPI.shared.playlistSubscriptionState(id: playlist.id)
+            guard state.ownerID != uid else { return }
+            playlistSubscribed = state.subscribed
+        } catch {
+            playlistSubscribed = nil
+        }
+    }
+
+    private func togglePlaylistSubscription() async {
+        guard let current = playlistSubscribed, !subscribeBusy else { return }
+        subscribeBusy = true
+        defer { subscribeBusy = false }
+        playlistSubscribed = !current
+        do {
+            try await NetEaseAPI.shared.setPlaylistSubscribed(id: playlist.id, subscribed: !current)
+            ToastCenter.shared.show(!current ? "已收藏歌单" : "已取消收藏")
+        } catch {
+            playlistSubscribed = current
+            ToastCenter.shared.show("操作失败，请稍后再试")
+        }
     }
     private func load(force: Bool = false) async {
         let cache = SyncedPlaylistCache.shared

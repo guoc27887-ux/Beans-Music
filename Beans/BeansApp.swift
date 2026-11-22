@@ -124,6 +124,17 @@ struct BeansApp: App {
             } message: {
                 Text(listenTogether.noticeMessage ?? "状态已更新")
             }
+            // 剪贴板网易云链接识别（歌曲 / 歌单 / 专辑 / 一起听邀请）
+            .modifier(BeansClipboardLinkModifier(
+                player: player,
+                auth: auth,
+                theme: theme,
+                listenTogether: listenTogether
+            ))
+            // 网易云听歌上报（scrobble）：观察播放生命周期，静默上报
+            .onAppear {
+                NetEaseScrobbleReporter.shared.start(player: player, auth: auth)
+            }
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active else { return }
                 HighRefreshKeeper.shared.startIfNeeded()

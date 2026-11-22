@@ -21,6 +21,11 @@ struct ListenTogetherView: View {
     @State private var invitationText = ""
     @State private var showsLeaveConfirmation = false
 
+    /// 剪贴板识别到一起听邀请时预填邀请文本，其余入口保持默认空。
+    init(invitationText: String = "") {
+        _invitationText = State(initialValue: invitationText)
+    }
+
     var body: some View {
         NavigationStack {
             Form {
