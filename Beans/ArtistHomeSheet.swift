@@ -186,7 +186,9 @@ struct ArtistHomeSheet: View {
         do {
             let followed = try await NetEaseAPI.shared.subscribedArtists()
             guard !Task.isCancelled else { return }
-            isFollowed = followed.contains { $0.id == numericArtistID }
+            isFollowed = followed.contains {
+                Int($0.id.replacingOccurrences(of: "netease-", with: "")) == numericArtistID
+            }
         } catch {
             isFollowed = false
         }
@@ -198,7 +200,7 @@ struct ArtistHomeSheet: View {
         defer { followBusy = false }
         isFollowed = !current
         do {
-            try await NetEaseAPI.shared.setArtistFollowed(artistID: numericArtistID, followed: !current)
+            try await NetEaseAPI.shared.setArtistFollowed(id: numericArtistID, followed: !current)
             ToastCenter.shared.show(!current ? "已关注歌手" : "已取消关注")
         } catch {
             isFollowed = current
@@ -206,6 +208,7 @@ struct ArtistHomeSheet: View {
         }
     }
 
+    @ViewBuilder
     private var artistHeader: some View {
         if immersiveDetail {
             BeansImmersiveDetailHeader(coverURL: artist?.coverURL, title: artist?.name ?? artistName,
