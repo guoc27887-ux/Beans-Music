@@ -862,6 +862,20 @@ extension View {
         }
     }
 
+    /// 与 beansHomeNavigationBarTransparent 的 iOS 26 以下分支同一手法，
+    /// 供没有调用前者的标签根页使用（搜索、歌单）：根页导航栏无标题无按钮，
+    /// 在 legacy 底栏宿主里其 44pt 安全区贡献定不下来，根页 ScrollView
+    /// 静止时会反复上下跳动；pre-26 直接隐藏使贡献恒为 0。iOS 26 路径
+    /// 保持原样不动。推送的详情页有各自的导航栏，不受影响。
+    @ViewBuilder
+    func beansRootNavigationBarHiddenBelow26() -> some View {
+        if #available(iOS 26, *) {
+            self
+        } else {
+            self.toolbar(.hidden, for: .navigationBar)
+        }
+    }
+
     /// iOS 16+ 隐藏滚动条，低版本保持默认
     @ViewBuilder
     func beansScrollIndicatorsHidden() -> some View {

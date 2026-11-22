@@ -232,6 +232,7 @@ struct LibraryView: View {
             }
             .beansScrollIndicatorsHidden()
         }
+        .beansRootNavigationBarHiddenBelow26()
         .task {
             source = platformPrefs.ensureVisible(source)
         }

@@ -36,6 +36,7 @@ struct ReferencePlaybackView: View {
     let onDownload: () -> Void
     let onPlayerSettings: () -> Void
     let onArtist: () -> Void
+    let onListenTogether: () -> Void
 
     @AppStorage("beans.lyricOffset") private var lyricOffset = 0.0
     @AppStorage("beans.appleMusic.showVolume") private var showVolumeControl = false
@@ -70,7 +71,8 @@ struct ReferencePlaybackView: View {
         onAddToLocalPlaylist: @escaping () -> Void,
         onDownload: @escaping () -> Void,
         onPlayerSettings: @escaping () -> Void,
-        onArtist: @escaping () -> Void = {}
+        onArtist: @escaping () -> Void = {},
+        onListenTogether: @escaping () -> Void = {}
     ) {
         self.song = song
         self.lyrics = lyrics
@@ -83,6 +85,7 @@ struct ReferencePlaybackView: View {
         self.onDownload = onDownload
         self.onPlayerSettings = onPlayerSettings
         self.onArtist = onArtist
+        self.onListenTogether = onListenTogether
     }
 
     private func layoutEntry(_ part: AppleMusicLayoutPart) -> PlayerLayoutEntry {
@@ -286,6 +289,7 @@ struct ReferencePlaybackView: View {
             favoriteActionButton()
             Menu {
                 Button("定时关闭", action: onSleepTimer)
+                Button("一起听", action: onListenTogether)
                 Button("添加到本地歌单", action: onAddToLocalPlaylist)
                 customCoverActions
                 if downloadFeatureUnlocked {
@@ -429,6 +433,7 @@ struct ReferencePlaybackView: View {
                 favoriteActionButton()
                 Menu {
                     Button("定时关闭", action: onSleepTimer)
+                    Button("一起听", action: onListenTogether)
                     Button("添加到本地歌单", action: onAddToLocalPlaylist)
                     customCoverActions
                     if downloadFeatureUnlocked {
@@ -528,6 +533,7 @@ struct ReferencePlaybackView: View {
                 }
                 Divider()
                 Button("定时关闭", action: onSleepTimer)
+                Button("一起听", action: onListenTogether)
                 Button("添加到本地歌单", action: onAddToLocalPlaylist)
                 customCoverActions
                 if downloadFeatureUnlocked {

@@ -738,6 +738,9 @@ struct PlayerView: View {
                         },
                         onArtist: {
                             openArtistHome()
+                        },
+                        onListenTogether: {
+                            showListenTogether = true
                         }
                     )
 
@@ -789,6 +792,9 @@ struct PlayerView: View {
                     },
                     onDownload: {
                         showDownloadPicker = true
+                    },
+                    onListenTogether: {
+                        showListenTogether = true
                     },
                     downloadFeatureUnlocked: downloadFeatureUnlocked
                 )
@@ -4141,6 +4147,9 @@ struct PlayerView: View {
                         },
                         onArtist: {
                             openArtistHome()
+                        },
+                        onListenTogether: {
+                            showListenTogether = true
                         }
                     )
                     .frame(width: canvasSize.width, height: canvasSize.height)

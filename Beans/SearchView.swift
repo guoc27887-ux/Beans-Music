@@ -332,6 +332,7 @@ struct SearchView: View {
                     .navigationTitle(keyword.isEmpty ? "搜索" : keyword)
             } else {
                 pageContent
+                    .beansRootNavigationBarHiddenBelow26()
             }
         }
         .task(id: provider) {

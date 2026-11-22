@@ -24,6 +24,7 @@ struct RecordPlayerView: View {
     let onSleepTimer: () -> Void
     let onAddToLocalPlaylist: () -> Void
     let onDownload: () -> Void
+    let onListenTogether: () -> Void
     let downloadFeatureUnlocked: Bool
     let visualsActive: Bool
     @AppStorage(BeansBackendSettings.downloadUnlockKey) private var storedDownloadFeatureUnlocked = false
@@ -51,6 +52,7 @@ struct RecordPlayerView: View {
         onSleepTimer: @escaping () -> Void = {},
         onAddToLocalPlaylist: @escaping () -> Void = {},
         onDownload: @escaping () -> Void = {},
+        onListenTogether: @escaping () -> Void = {},
         downloadFeatureUnlocked: Bool = false,
         visualsActive: Bool = true
     ) {
@@ -68,6 +70,7 @@ struct RecordPlayerView: View {
         self.onSleepTimer = onSleepTimer
         self.onAddToLocalPlaylist = onAddToLocalPlaylist
         self.onDownload = onDownload
+        self.onListenTogether = onListenTogether
         self.downloadFeatureUnlocked = downloadFeatureUnlocked
         self.visualsActive = visualsActive
         self._showLyrics = State(initialValue: initialShowsLyrics)
@@ -580,6 +583,7 @@ struct RecordPlayerView: View {
                     }
                 }
                 Button("定时关闭", action: onSleepTimer)
+                Button("一起听", action: onListenTogether)
                 Button("添加到本地歌单", action: onAddToLocalPlaylist)
                 Button("更换自定义封面") {
                     showCustomCoverPicker = true
