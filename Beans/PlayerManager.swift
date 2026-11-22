@@ -172,11 +172,10 @@ final class PlayerManager: NSObject, ObservableObject {
     private var lastNowPlayingArtworkKey: String?
     private var nowPlayingSongKey: String?
     private var nowPlayingInfo: [String: Any] = [:]
-    private lazy var lockScreenArtwork: BeansLockScreenArtwork? = {
-        guard #available(iOS 26.0, *) else { return nil }
-        let artwork = BeansLockScreenArtwork()
-        artwork.onReady = { [weak self] in self?.updateNowPlaying() }
-        return artwork
+    private lazy var lockScreenArtwork: BeansLockScreenArtworkProvider = {
+        let provider = BeansLockScreenArtworkProvider()
+        provider.onReady = { [weak self] in self?.updateNowPlaying() }
+        return provider
     }()
     /// 酷狗高音质地址在部分账号/系统上会返回但无法由 AVPlayer 打开；每首歌只自动降级一次。
     private var kugouStandardFallbackSongKey: String?
@@ -2748,9 +2747,7 @@ final class PlayerManager: NSObject, ObservableObject {
                     }
                 }
             }
-            if #available(iOS 26.0, *), let lockScreenArtwork {
-                for (key, artwork) in lockScreenArtwork.artwork(sourceURL: artworkURL) { info[key] = artwork }
-            }
+            for (key, artwork) in lockScreenArtwork.artwork(sourceURL: artworkURL) { info[key] = artwork }
         } else {
             lastNowPlayingArtworkKey = nil
         }

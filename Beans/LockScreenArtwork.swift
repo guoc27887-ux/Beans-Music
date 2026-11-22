@@ -69,6 +69,27 @@ final class BeansLockScreenArtwork {
     }
 }
 
+/// 跨版本门面：内部以类型擦除方式持有 iOS 26 的 BeansLockScreenArtwork，
+/// 让调用方（如 PlayerManager 的存储属性）无需直接引用 iOS 26 专属类型；
+/// iOS 18 上所有调用返回空结果，静态封面不受影响。
+final class BeansLockScreenArtworkProvider {
+    var onReady: (() -> Void)?
+    private var storage: AnyObject?
+
+    func artwork(sourceURL: URL) -> [String: Any] {
+        guard #available(iOS 26.0, *) else { return [:] }
+        let artwork: BeansLockScreenArtwork
+        if let existing = storage as? BeansLockScreenArtwork {
+            artwork = existing
+        } else {
+            artwork = BeansLockScreenArtwork()
+            artwork.onReady = onReady
+            storage = artwork
+        }
+        return artwork.artwork(sourceURL: sourceURL)
+    }
+}
+
 private final class BeansLockScreenArtworkLease: @unchecked Sendable {
     let identifier: String
     init(identifier: String) { self.identifier = identifier }
