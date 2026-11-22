@@ -45,12 +45,23 @@ struct FoliaStillRenderer: View {
         if document.lines.indices.contains(index) {
             let line = document.lines[index]
             let current = offset == 0
-            VStack(spacing: current ? 12 : 8) {
+            // 对唱呈现（同 MeloX SynchronizedLyricText 的换边规则）：flipped
+            // 角色右对齐，normal 角色左对齐，无角色时维持原版居中。
+            let flipped = line.agent?.alignment == .flipped
+            let textAlignment: TextAlignment = line.agent == nil ? .center : (flipped ? .trailing : .leading)
+            let frameAlignment: Alignment = line.agent == nil ? .center : (flipped ? .trailing : .leading)
+            VStack(alignment: flipped ? .trailing : (line.agent == nil ? .center : .leading), spacing: current ? 12 : 8) {
+                if let agent = line.agent {
+                    Text(agent.displayName)
+                        .font(.system(size: (current ? 15 : 13) * fontScale, weight: .semibold))
+                        .foregroundStyle(flipped ? (Color(hex: "#A5B4FC") ?? .indigo) : (Color(hex: primaryHex) ?? .white).opacity(0.55))
+                        .opacity(current ? 1 : 0.3)
+                }
                 if !line.fullText.isEmpty {
                     Text(line.fullText)
                         .font(.system(size: (current ? 40 : 30) * fontScale, weight: current ? .bold : .semibold))
                         .tracking(0.8)
-                        .foregroundStyle(Color(hex: primaryHex) ?? .white)
+                        .foregroundStyle(flipped ? (Color(hex: "#A5B4FC") ?? .indigo) : (Color(hex: primaryHex) ?? .white))
                         .opacity(current ? 1 : 0.3)
                         .shadow(color: .black.opacity(0.25), radius: 2, y: 2)
                 }
@@ -61,7 +72,7 @@ struct FoliaStillRenderer: View {
                         .foregroundStyle(Color(hex: secondaryHex) ?? .white)
                         .opacity(current ? 0.8 : 0.3)
                 }
-            }.multilineTextAlignment(.center).frame(maxWidth: .infinity)
+            }.multilineTextAlignment(textAlignment).frame(maxWidth: .infinity, alignment: frameAlignment)
         } else {
             Color.clear.frame(height: 80)
         }

@@ -6,6 +6,7 @@ import SwiftUI
 struct ArtistHomeSheet: View {
     @EnvironmentObject private var theme: ThemeStore
     @EnvironmentObject private var player: PlayerManager
+    @EnvironmentObject private var auth: AuthStore
     @Environment(\.dismiss) private var dismiss
     let artistName: String
     var artistSource: SongSource = .netease
@@ -50,6 +51,9 @@ struct ArtistHomeSheet: View {
     @State private var artist: Artist?
     @State private var hotSongs: [Song] = []
     @State private var albums: [Album] = []
+    /// 网易云云端关注状态（移植自 MeloX 的歌手关注）：nil 表示尚未查到。
+    @State private var isFollowed: Bool?
+    @State private var followBusy = false
     @State private var loading = true
     @State private var errorMessage: String?
     @State private var searchText = ""
@@ -109,6 +113,9 @@ struct ArtistHomeSheet: View {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 14) {
                             artistHeader
+                            if artistSource == .netease, auth.isLoggedIn, numericArtistID > 0 {
+                                followButton
+                            }
                             hotSongsSection
                             albumsSection
                         }
@@ -130,6 +137,74 @@ struct ArtistHomeSheet: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 BeansDetailProfileShortcut()
             }
+        }
+    }
+
+    @ViewBuilder
+    /// 网易云数字歌手 ID（Beans 的 Artist.id 形如 "netease-<数字>"）。
+    private var numericArtistID: Int {
+        let raw = (artist?.id ?? artistID ?? "")
+            .replacingOccurrences(of: "netease-", with: "")
+        return Int(raw) ?? 0
+    }
+
+    /// 关注 / 取消关注（网易云云端），状态来自 /api/artist/sublist。
+    private var followButton: some View {
+        Button {
+            Task { await toggleFollow() }
+        } label: {
+            HStack(spacing: 6) {
+                if followBusy {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Image(systemName: isFollowed == true ? "checkmark" : "plus")
+                        .font(.system(size: 12, weight: .bold))
+                }
+                Text(isFollowed == true ? "已关注" : "关注")
+                    .font(BeansFont.appFont(13, .semibold))
+            }
+            .foregroundStyle(isFollowed == true ? Color.beansComment : Color.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background {
+                if isFollowed == true {
+                    BeansSurface(shape: Capsule())
+                } else {
+                    Capsule().fill(Color.beansHighlight)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(followBusy || isFollowed == nil)
+        .task(id: numericArtistID) {
+            await loadFollowState()
+        }
+    }
+
+    private func loadFollowState() async {
+        guard numericArtistID > 0, auth.isLoggedIn else { return }
+        do {
+            let followed = try await NetEaseAPI.shared.subscribedArtists()
+            guard !Task.isCancelled else { return }
+            isFollowed = followed.contains {
+                Int($0.id.replacingOccurrences(of: "netease-", with: "")) == numericArtistID
+            }
+        } catch {
+            isFollowed = false
+        }
+    }
+
+    private func toggleFollow() async {
+        guard let current = isFollowed, numericArtistID > 0, !followBusy else { return }
+        followBusy = true
+        defer { followBusy = false }
+        isFollowed = !current
+        do {
+            try await NetEaseAPI.shared.setArtistFollowed(id: numericArtistID, followed: !current)
+            ToastCenter.shared.show(!current ? "已关注歌手" : "已取消关注")
+        } catch {
+            isFollowed = current
+            ToastCenter.shared.show("操作失败，请稍后再试")
         }
     }
 

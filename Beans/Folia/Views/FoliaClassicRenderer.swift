@@ -66,25 +66,39 @@ struct FoliaClassicRenderer: View {
     }
 
     @ViewBuilder private func lineView(_ line: FoliaLine, fontSize: Double, time: Double) -> some View {
-        if line.words.isEmpty {
-            // LRC has no word timestamps: keep it readable without fabricated karaoke timing.
-            Text(line.fullText).font(.system(size: fontSize, weight: .bold))
-                .foregroundStyle(Color(hex: primaryHex) ?? .white).multilineTextAlignment(.center)
-        } else {
-            let interlude = line.fullText == "......"
-            let geometry = line.words.indices.map {
-                FoliaClassicMotion.geometry(seed: line.startTime, index: $0, intensity: intensity,
-                                            rotationEnabled: rotationEnabled, interlude: interlude)
+        // 对唱呈现（同 MeloX 的角色区分思路）：flipped 角色换用强调色，
+        // 两位角色都在歌词上方带歌手名小标签；无 agent 时与原版完全一致。
+        let flipped = line.agent?.alignment == .flipped
+        let baseColor = Color(hex: flipped ? accentHex : primaryHex) ?? .white
+        let wordAccent = Color(hex: flipped ? primaryHex : accentHex) ?? .indigo
+        VStack(spacing: 10) {
+            if let agent = line.agent {
+                Text(agent.displayName)
+                    .font(.system(size: max(13, fontSize * 0.3), weight: .semibold))
+                    .foregroundStyle(flipped ? (Color(hex: accentHex) ?? .indigo) : (Color(hex: primaryHex) ?? .white).opacity(0.55))
+                    .padding(.horizontal, 10).padding(.vertical, 3)
+                    .background(.white.opacity(0.08), in: Capsule())
             }
-            FoliaClassicLayout(geometries: geometry, fontSize: fontSize, intensity: intensity,
-                               spacing: spacing, legacy: legacy, interlude: interlude,
-                               justification: FoliaClassicMotion.justification(seed: line.startTime, intensity: intensity, interlude: interlude),
-                               alignment: FoliaClassicMotion.alignment(seed: line.startTime, intensity: intensity)) {
-                ForEach(Array(line.words.enumerated()), id: \.element.id) { index, word in
-                    FoliaClassicWordView(word: word, time: time, state: FoliaClassicMotion.state(word: word, time: time),
-                                         geometry: geometry[index], intensity: intensity, fontSize: fontSize,
-                                         base: Color(hex: primaryHex) ?? .white, accent: Color(hex: accentHex) ?? .indigo,
-                                         rotationEnabled: rotationEnabled, reduceMotion: reduceMotion)
+            if line.words.isEmpty {
+                // LRC has no word timestamps: keep it readable without fabricated karaoke timing.
+                Text(line.fullText).font(.system(size: fontSize, weight: .bold))
+                    .foregroundStyle(baseColor).multilineTextAlignment(.center)
+            } else {
+                let interlude = line.fullText == "......"
+                let geometry = line.words.indices.map {
+                    FoliaClassicMotion.geometry(seed: line.startTime, index: $0, intensity: intensity,
+                                                rotationEnabled: rotationEnabled, interlude: interlude)
+                }
+                FoliaClassicLayout(geometries: geometry, fontSize: fontSize, intensity: intensity,
+                                   spacing: spacing, legacy: legacy, interlude: interlude,
+                                   justification: FoliaClassicMotion.justification(seed: line.startTime, intensity: intensity, interlude: interlude),
+                                   alignment: FoliaClassicMotion.alignment(seed: line.startTime, intensity: intensity)) {
+                    ForEach(Array(line.words.enumerated()), id: \.element.id) { index, word in
+                        FoliaClassicWordView(word: word, time: time, state: FoliaClassicMotion.state(word: word, time: time),
+                                             geometry: geometry[index], intensity: intensity, fontSize: fontSize,
+                                             base: baseColor, accent: wordAccent,
+                                             rotationEnabled: rotationEnabled, reduceMotion: reduceMotion)
+                    }
                 }
             }
         }
@@ -101,7 +115,9 @@ struct FoliaClassicRenderer: View {
                 Text(translation).multilineTextAlignment(.center)
             } else {
                 ForEach(FoliaTimeline.upcomingLines(lines: document.lines, activeIndex: activeIndex)) { line in
-                    Text(line.fullText).font(.system(size: 16 * fontScale * subtitleScale))
+                    Text(line.agent.map { "\($0.displayName)：\(line.fullText)" } ?? line.fullText)
+                        .font(.system(size: 16 * fontScale * subtitleScale))
+                        .foregroundStyle(line.agent?.alignment == .flipped ? (Color(hex: accentHex) ?? .indigo) : (Color(hex: secondaryHex) ?? .white))
                         .multilineTextAlignment(.center).blur(radius: reduceMotion ? 0 : 2)
                 }
             }

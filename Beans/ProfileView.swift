@@ -136,6 +136,9 @@ struct ProfileView: View {
 
     @State private var showHistory = false
 
+    /// 网易云服务聚合页（私信 / 云盘 / 收藏专辑 / 关注歌手，移植自 MeloX）
+    @State private var showNetEaseHub = false
+
     /// 统一账号登录面板（网易云 + QQ 音乐整合）
     @State private var showAccountHub = false
     /// 设置页（外观 + 歌词翻译等）
@@ -436,6 +439,9 @@ struct ProfileView: View {
                         header
                     }
                     customAvatarCard
+                    if auth.isLoggedIn {
+                        neteaseServicesCard
+                    }
                     communityCard
                     if !hideDonation {
                         donationCard
@@ -495,6 +501,12 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showHistory) {
             HistoryView()
+                .environmentObject(player)
+                .environmentObject(auth)
+                .environmentObject(theme)
+        }
+        .sheet(isPresented: $showNetEaseHub) {
+            NetEaseHubView()
                 .environmentObject(player)
                 .environmentObject(auth)
                 .environmentObject(theme)
@@ -1083,6 +1095,39 @@ struct ProfileView: View {
     }
 
     /// 我的页底部交流群入口
+    /// 网易云服务入口（私信 / 云盘 / 收藏专辑 / 关注歌手），仅登录网易云后展示。
+    private var neteaseServicesCard: some View {
+        Button {
+            BeansHaptics.tap()
+            showNetEaseHub = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "music.note.house.fill")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.beansHighlight)
+                    .frame(width: 28)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("网易云服务")
+                        .font(BeansFont.appFont(14, .semibold))
+                        .foregroundStyle(Color.beansLabel)
+                    Text("私信 · 音乐云盘 · 收藏专辑 · 关注歌手")
+                        .font(BeansFont.appFont(11))
+                        .foregroundStyle(Color.beansComment)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.beansComment)
+            }
+            .padding(16)
+            .background {
+                BeansGlass(shape: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            }
+        }
+        .buttonStyle(GlassPressButtonStyle(scale: 0.98))
+        .beansCardShadow(radius: 9, y: 3)
+    }
+
     private var communityCard: some View {
         Button {
             BeansHaptics.tap()

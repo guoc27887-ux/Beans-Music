@@ -303,6 +303,8 @@ struct SearchView: View {
     @State private var playlistSearchRequestID = UUID()
     @State private var showBatchDownload = false
     @State private var selectedDownloadSong: Song?
+    /// 听歌识曲（移植自 MeloX）
+    @State private var showRecognition = false
     @State private var showProfile = false
     @State private var artistCoverCache: [String: URL] = [:]
     /// UIKit 输入框控制器（提交拼音、收起键盘等由它统一处理）
@@ -413,6 +415,13 @@ struct SearchView: View {
             AddToLocalPlaylistSheet(song: song)
                 .environmentObject(theme)
         }
+        .sheet(isPresented: $showRecognition) {
+            BeansNavigationStack {
+                SongRecognitionView()
+            }
+            .environmentObject(player)
+            .environmentObject(theme)
+        }
         .sheet(item: $selectedArtist) { artist in
             ArtistHomeSheet(artist: artist).environmentObject(player)
         }
@@ -472,6 +481,7 @@ struct SearchView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     HStack(spacing: 10) {
                         searchField
+                        recognitionButton
                         BeansProfileShortcutButton {
                             showProfile = true
                         }
@@ -521,10 +531,26 @@ struct SearchView: View {
                 .font(BeansFont.appFont(32, .bold))
                 .foregroundStyle(Color.beansLabel)
             Spacer(minLength: 0)
+            recognitionButton
             BeansProfileShortcutButton {
                 showProfile = true
             }
         }
+    }
+
+    /// 听歌识曲入口按钮（搜索页页头，现代与旧版布局共用）
+    private var recognitionButton: some View {
+        Button {
+            showRecognition = true
+        } label: {
+            Image(systemName: "waveform")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.beansLabel)
+                .frame(width: 38, height: 38)
+                .background { BeansSurface(shape: Circle()) }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("听歌识曲")
     }
 
     @ViewBuilder

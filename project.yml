@@ -25,6 +25,7 @@ targets:
       - Beans/Resources/CeruBilibili-NOTICE.md
       - Beans/Resources/ikun-music-source.js
       - Beans/Resources/1010-mobile.js
+      - Beans/Resources/AudioFingerprint
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.beans.app
@@ -52,6 +53,7 @@ targets:
         UIBackgroundModes: [audio]
         NSSupportsLiveActivities: true
         NSPhotoLibraryAddUsageDescription: 用于将哔哩哔哩动态和评论图片保存到系统照片图库。
+        NSMicrophoneUsageDescription: 用于听歌识曲时聆听周围环境中的音乐并识别歌曲。
         UILaunchScreen:
           UIImageName: LaunchBackground
           UIColorName: LaunchBackgroundColor
