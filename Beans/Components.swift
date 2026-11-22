@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import CryptoKit
 import ObjectiveC
+import ImageIO
 
 private struct BeansSharedRootBackdropKey: EnvironmentKey {
     static let defaultValue = false
@@ -1020,6 +1021,10 @@ struct CoverImage: View {
     /// 封面未加载时的提示文字（播放器大封面用：等待开始播放）；nil 显示中性图标
     var emptyHint: String? = nil
     var playsCoverVideoAudio = false
+    /// 可选的解码像素上限。设值时封面经 ImageIO 缩略图路径按上限解码，
+    /// 不把原图全尺寸位图送进小尺寸视图；nil（默认）保持原有全尺寸路径，
+    /// 其他页面行为不变。目前只有播放队列的小行封面 opt-in。
+    var decodeMaxPixelSize: CGFloat? = nil
 
     @StateObject private var imageLoader = BeansCoverImageLoader()
     @ObservedObject private var customCovers = CustomSongCoverStore.shared
@@ -1073,18 +1078,18 @@ struct CoverImage: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .onAppear {
-                if !usesCustomMediaRenderer { imageLoader.load(url: resolvedURL) }
+                if !usesCustomMediaRenderer { imageLoader.load(url: resolvedURL, maxPixelSize: decodeMaxPixelSize) }
             }
             .onChange(of: url) { nextURL in
                 let resolvedURL = customCovers.url(for: song) ?? customCovers.resolvedURL(for: nextURL)
                 if !customCovers.isStoredCover(resolvedURL) {
-                    imageLoader.load(url: resolvedURL)
+                    imageLoader.load(url: resolvedURL, maxPixelSize: decodeMaxPixelSize)
                 }
             }
             .onChange(of: song?.identityKey) { _ in
                 let resolvedURL = customCovers.url(for: song) ?? customCovers.resolvedURL(for: url)
                 if !customCovers.isStoredCover(resolvedURL) {
-                    imageLoader.load(url: resolvedURL)
+                    imageLoader.load(url: resolvedURL, maxPixelSize: decodeMaxPixelSize)
                 }
             }
     }
@@ -1168,6 +1173,73 @@ final class BeansCoverImageStore {
     static func memoryImage(for url: URL?) -> UIImage? {
         guard let url, !url.isFileURL else { return nil }
         return memoryCache.object(forKey: url as NSURL)
+    }
+
+    /// 缩略图缓存：按 URL+上限 独立存放，不污染全尺寸 memoryCache，
+    /// 大封面路径（播放器等）完全不受影响。
+    private static let thumbnailCache = NSCache<NSString, UIImage>()
+
+    /// 按像素上限解码封面缩略图。数据优先取已落盘的文件缓存与 URLCache，
+    /// 未命中才联网（并按原有方式落盘原始数据，供全尺寸路径复用）。
+    /// 解码走 ImageIO 缩略图路径，只产生上限尺寸的位图，不解码原图全尺寸。
+    /// completion 总在主队列回调。
+    static func loadThumbnail(for url: URL, maxPixelSize: CGFloat, completion: @escaping (UIImage?) -> Void) {
+        let key = "\(url.absoluteString)#\(Int(maxPixelSize.rounded()))" as NSString
+        if let image = thumbnailCache.object(forKey: key) {
+            DispatchQueue.main.async { completion(image) }
+            return
+        }
+        Task.detached(priority: .utility) {
+            var image: UIImage?
+            let fileURL = diskFileURL(for: url)
+            if let data = try? Data(contentsOf: fileURL, options: .mappedIfSafe) {
+                image = makeThumbnail(data: data, maxPixelSize: maxPixelSize)
+            }
+            if image == nil {
+                var request = URLRequest(url: url)
+                request.cachePolicy = .returnCacheDataElseLoad
+                if let response = session.configuration.urlCache?.cachedResponse(for: request) {
+                    image = makeThumbnail(data: response.data, maxPixelSize: maxPixelSize)
+                    if image != nil {
+                        persist(data: response.data, for: url)
+                    }
+                }
+            }
+            if image == nil {
+                var request = URLRequest(url: url)
+                request.cachePolicy = .returnCacheDataElseLoad
+                if let (data, response) = try? await session.data(for: request),
+                   let http = response as? HTTPURLResponse,
+                   200..<300 ~= http.statusCode,
+                   !data.isEmpty {
+                    session.configuration.urlCache?.storeCachedResponse(
+                        CachedURLResponse(response: response, data: data),
+                        for: request
+                    )
+                    persist(data: data, for: url)
+                    image = makeThumbnail(data: data, maxPixelSize: maxPixelSize)
+                }
+            }
+            if let image {
+                let cost = (image.cgImage?.width ?? 0) * (image.cgImage?.height ?? 0) * 4
+                thumbnailCache.setObject(image, forKey: key, cost: cost)
+            }
+            let result = image
+            await MainActor.run { completion(result) }
+        }
+    }
+
+    private static func makeThumbnail(data: Data, maxPixelSize: CGFloat) -> UIImage? {
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: max(1, Int(maxPixelSize.rounded()))
+        ]
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else {
+            return nil
+        }
+        return UIImage(cgImage: cgImage)
     }
 
     /// Rehydrate persisted covers away from SwiftUI's rendering path. The
@@ -1313,6 +1385,7 @@ private final class BeansCoverImageLoader: ObservableObject {
     @Published private(set) var didFail = false
     private var task: Task<Void, Never>?
     private var loadedURL: URL?
+    private var loadedMaxPixelSize: CGFloat?
     private var cacheLookupURL: URL?
 
     /// SwiftUI may keep this StateObject alive while a row changes songs. Never
@@ -1321,8 +1394,8 @@ private final class BeansCoverImageLoader: ObservableObject {
         loadedURL == url ? image : nil
     }
 
-    func load(url: URL?) {
-        if loadedURL == url {
+    func load(url: URL?, maxPixelSize: CGFloat? = nil) {
+        if loadedURL == url, loadedMaxPixelSize == maxPixelSize {
             // `onAppear` can fire repeatedly for a recycled LazyVStack row.
             // Never clear a valid bitmap or start a second request for the
             // same URL in that case.
@@ -1333,6 +1406,7 @@ private final class BeansCoverImageLoader: ObservableObject {
             task?.cancel()
             cacheLookupURL = nil
             loadedURL = url
+            loadedMaxPixelSize = maxPixelSize
             image = nil
             didFail = false
         }
@@ -1347,6 +1421,27 @@ private final class BeansCoverImageLoader: ObservableObject {
             return
         }
 
+        // 有解码上限时先走缩略图路径（ImageIO 按上限解码，不产生全尺寸
+        // 位图）；缩略图拿不到（数据损坏等）再回退到下面的全尺寸路径。
+        // 本地文件封面不走缩略图路径，保持原有预览图逻辑。
+        if let maxPixelSize, !url.isFileURL {
+            cacheLookupURL = url
+            BeansCoverImageStore.loadThumbnail(for: url, maxPixelSize: maxPixelSize) { [weak self] thumbnail in
+                guard let self, self.loadedURL == url else { return }
+                self.cacheLookupURL = nil
+                if let thumbnail {
+                    self.image = thumbnail
+                    return
+                }
+                self.loadFullImage(url: url)
+            }
+            return
+        }
+
+        loadFullImage(url: url)
+    }
+
+    private func loadFullImage(url: URL) {
         cacheLookupURL = url
         BeansCoverImageStore.loadCachedImage(for: url) { [weak self] cachedImage in
             guard let self, self.loadedURL == url else { return }
