@@ -3501,11 +3501,14 @@ struct PlayerView: View {
 
     private func legacyDeckRow(appliesPortraitLayout: Bool = true) -> some View {
         ZStack {
-            // 两侧对称：循环模式 / 播放列表
+            // 两侧对称：循环模式 / 评论+播放列表
             HStack {
                 modeButton(appliesPortraitLayout: appliesPortraitLayout)
                 Spacer(minLength: 0)
-                queueButton(appliesPortraitLayout: appliesPortraitLayout)
+                HStack(spacing: 10) {
+                    commentButton()
+                    queueButton(appliesPortraitLayout: appliesPortraitLayout)
+                }
             }
             .padding(.horizontal, 8)
             // 中间主控制组：上一曲 / 播放暂停 / 下一曲 真正居中
@@ -3692,6 +3695,27 @@ struct PlayerView: View {
             data: $layoutData,
             appliesTransform: appliesPortraitLayout
         ))
+    }
+
+    /// 评论按钮（经典样式）：与播放列表按钮同一套规格（text.bubble 图标、
+    /// 次级圆形玻璃钮），排在播放列表左侧，与参考样式里评论/队列的
+    /// 相对位置一致。点击打开同一个 CommentsSheet；原上划手势保留。
+    private func commentButton() -> some View {
+        Button {
+            BeansHaptics.tap()
+            if song != nil { showComments = true }
+        } label: {
+            Image(systemName: "text.bubble")
+                .font(.system(size: playerButtonStyle == .appleMusic ? 17 : 12, weight: .semibold))
+                .foregroundStyle(playerButtonSecondaryText)
+                .frame(width: secondaryPlayerButtonSize, height: secondaryPlayerButtonSize)
+                .background {
+                    playerButtonSurface(size: secondaryPlayerButtonSize)
+                }
+                .clipShape(Circle())
+        }
+        .buttonStyle(GlassPressButtonStyle())
+        .accessibilityLabel("评论")
     }
 
     private func deckButton(

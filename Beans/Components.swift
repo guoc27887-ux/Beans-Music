@@ -984,11 +984,18 @@ struct BeansShimmerSkeleton: View {
                     )
                     .frame(width: bandWidth, height: height)
                     .offset(x: shimmerActive ? width * 1.6 : -bandWidth)
+                    // 动画必须用修饰符形式绑定在本视图自身的 offset 上，
+                    // 不能在 onAppear 里用 withAnimation(.repeatForever)：
+                    // 后者会把 1.5 秒线性重复动画注入当前事务，同事务里
+                    // 其他视图的一次性布局收敛（如根页导航栏安全区贡献的
+                    // 落定）会被这段动画捕获并无限重放，表现为整页以
+                    // 1.5 秒为周期、约 90pt 行程的锯齿漂移（搜索页实测）。
+                    .animation(
+                        .linear(duration: 1.5).repeatForever(autoreverses: false),
+                        value: shimmerActive
+                    )
                     .onAppear {
-                        guard !shimmerActive else { return }
-                        withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-                            shimmerActive = true
-                        }
+                        shimmerActive = true
                     }
                     .onDisappear {
                         var transaction = Transaction()
