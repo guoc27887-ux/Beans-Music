@@ -2,7 +2,7 @@ name: Beans
 
 options:
   deploymentTarget:
-    iOS: "26.1"
+    iOS: "18.0"
 
 settings:
   base:
@@ -12,7 +12,7 @@ targets:
   Beans:
     type: application
     platform: iOS
-    deploymentTarget: "26.1"
+    deploymentTarget: "18.0"
     sources:
       - Beans
       - BeansLiveActivityShared
@@ -80,7 +80,7 @@ targets:
   BeansLiveActivity:
     type: app-extension
     platform: iOS
-    deploymentTarget: "26.1"
+    deploymentTarget: "18.0"
     sources:
       - BeansLiveActivity
       - BeansLiveActivityShared
@@ -102,7 +102,7 @@ targets:
   CiliCiliKit:
     type: framework
     platform: iOS
-    deploymentTarget: "26.1"
+    deploymentTarget: "18.0"
     sources:
       - path: Modules/CiliCili/Sources
         excludes:
@@ -125,7 +125,7 @@ targets:
   CiliCiliTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "26.1"
+    deploymentTarget: "18.0"
     sources:
       - Modules/CiliCili/Tests
     dependencies:
@@ -138,7 +138,7 @@ targets:
   BeansTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "26.1"
+    deploymentTarget: "18.0"
     sources:
       - BeansTests
     dependencies:
@@ -150,7 +150,7 @@ targets:
   BeansUITests:
     type: bundle.ui-testing
     platform: iOS
-    deploymentTarget: "26.1"
+    deploymentTarget: "18.0"
     sources:
       - BeansUITests
     dependencies:
