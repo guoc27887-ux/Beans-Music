@@ -867,6 +867,9 @@ final class QishuiAPI: ObservableObject {
 struct QishuiQRCodeSession {
     let token: String
     let qrContent: String
+    /// 服务端直接下发的二维码 PNG（data.qrcode 为 data:image/png;base64 时解码），
+    /// 有值时优先展示图片，不要把 base64 长串当文本再生成二维码（必超容量返回 nil）。
+    let qrImageData: Data?
     let cookieHeader: String
 }
 
@@ -1532,11 +1535,26 @@ extension QishuiAPI {
         guard let token = firstString(payload, keys: ["token"]), !token.isEmpty else {
             throw QishuiAPIError.invalidResponse
         }
-        let qrContent = firstString(payload, keys: ["qrcode", "qrcode_index_url", "web_url"]) ?? ""
-        guard !qrContent.isEmpty else { throw QishuiAPIError.invalidResponse }
+        // 实测（2026-11-23）：data.qrcode 是服务端画好的二维码 PNG，
+        // 形如 data:image/png;base64,...（约 18 KB），不是待编码的文本；
+        // 把它当文本喂 CIQRCodeGenerator 会超容量返回 nil，界面只剩空白框。
+        var qrImageData: Data? = nil
+        var qrContent = ""
+        let rawQR = firstString(payload, keys: ["qrcode"]) ?? ""
+        if rawQR.hasPrefix("data:image"), let comma = rawQR.firstIndex(of: ",") {
+            let base64 = String(rawQR[rawQR.index(after: comma)...])
+            qrImageData = Data(base64Encoded: base64)
+        } else if !rawQR.isEmpty {
+            qrContent = rawQR
+        }
+        if qrImageData == nil, qrContent.isEmpty {
+            qrContent = firstString(payload, keys: ["qrcode_index_url", "web_url"]) ?? ""
+        }
+        guard qrImageData != nil || !qrContent.isEmpty else { throw QishuiAPIError.invalidResponse }
         return QishuiQRCodeSession(
             token: token,
             qrContent: qrContent,
+            qrImageData: qrImageData,
             cookieHeader: Self.responseCookieHeader(response, for: url)
         )
     }

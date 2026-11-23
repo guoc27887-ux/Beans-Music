@@ -50,7 +50,15 @@ struct QishuiLoginSheet: View {
     private var qrArea: some View {
         ZStack {
             if let session {
-                QRCodeView(text: session.qrContent)
+                if let data = session.qrImageData, let image = UIImage(data: data) {
+                    Image(uiImage: image)
+                        .interpolation(.none)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 220, height: 220)
+                } else {
+                    QRCodeView(text: session.qrContent)
+                }
             } else {
                 ProgressView().tint(Color.beansAmber)
             }
