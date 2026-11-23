@@ -442,11 +442,6 @@ struct ProfileView: View {
                     if auth.isLoggedIn {
                         neteaseServicesCard
                     }
-                    communityCard
-                    if !hideDonation {
-                        donationCard
-                    }
-                    easterEggCard
                     profileVersionFooter
                     if BeansDeveloperAccess.isAuthorized {
                         developerToolsCard
@@ -4009,7 +4004,6 @@ struct SettingsView: View {
                 appearanceToggle("隐藏顶部平台列表", isOn: $hidePlatformPicker)
                 appearanceToggle("隐藏主页刷新按钮", isOn: $homeHeaderHideRefresh)
                 appearanceToggle("每日推荐使用旧版样式", isOn: $dailySongsListStyle)
-                appearanceToggle("隐藏自愿赞助", isOn: $hideDonation)
 
                 HStack {
                     Image(systemName: "textformat")
