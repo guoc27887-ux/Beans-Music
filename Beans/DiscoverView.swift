@@ -952,6 +952,12 @@ struct DiscoverView: View {
                                 openRoute(DiscoverRoute.qqTopList(info))
                             }
                         }
+                    } else if source == .qishui {
+                        ForEach(Array(qishuiTopLists.prefix(min(visibleRankCount, 10)).enumerated()), id: \.element.id) { index, info in
+                            nativeRankCard(index: index, name: beansChartName(info.name), subtitle: beansChartSubtitle(info.updateFrequency), coverURL: info.coverURL) {
+                                openRoute(DiscoverRoute.qishuiTopList(info))
+                            }
+                        }
                     } else {
                         ForEach(Array(kugouTopLists.prefix(min(visibleRankCount, 10)).enumerated()), id: \.element.id) { index, info in
                             nativeRankCard(index: index, name: beansChartName(info.name), subtitle: beansChartSubtitle(info.updateFrequency), coverURL: info.coverURL) {

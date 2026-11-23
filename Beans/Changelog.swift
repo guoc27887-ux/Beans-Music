@@ -77,6 +77,16 @@ enum ChangelogStore {
     /// 否则更新说明弹窗在远端拉取失败时展示的仍是旧版本条目（logs.first）。
     static let logs: [VersionLog] = [
         VersionLog(
+            id: "2.0.13",
+            version: "2.0.13",
+            title: "汽水主页排行榜补齐与登录诊断",
+            features: [],
+            fixes: [
+                "汽水主页排行榜在简洁样式下不显示条目（只剩标题）",
+                "汽水扫码改用官方扫码登录链接出码（此前展示的服务端图片码能确认但不下发登录会话），并加入登录轮询日志便于定位"
+            ]
+        ),
+        VersionLog(
             id: "2.0.12",
             version: "2.0.12",
             title: "汽水主页平台与登录修复",

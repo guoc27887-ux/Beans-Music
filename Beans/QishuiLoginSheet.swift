@@ -50,7 +50,12 @@ struct QishuiLoginSheet: View {
     private var qrArea: some View {
         ZStack {
             if let session {
-                if let data = session.qrImageData, let image = UIImage(data: data) {
+                if !session.scanURL.isEmpty {
+                    // 优先扫 qrcode_index_url（music-lib 同款）：服务端 PNG 里的
+                    // web_url 走的可能是身份验证口味的扫码通道，扫了能确认却
+                    // 不下发登录会话；index URL 是官方扫码登录入口。
+                    QRCodeView(text: session.scanURL)
+                } else if let data = session.qrImageData, let image = UIImage(data: data) {
                     Image(uiImage: image)
                         .interpolation(.none)
                         .resizable()

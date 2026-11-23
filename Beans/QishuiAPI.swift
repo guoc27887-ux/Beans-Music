@@ -943,8 +943,12 @@ struct QishuiQRCodeSession {
     let token: String
     let qrContent: String
     /// 服务端直接下发的二维码 PNG（data.qrcode 为 data:image/png;base64 时解码），
-    /// 有值时优先展示图片，不要把 base64 长串当文本再生成二维码（必超容量返回 nil）。
+    /// 不要把 base64 长串当文本再生成二维码（必超容量返回 nil）。
     let qrImageData: Data?
+    /// qrcode_index_url（兜底 web_url）：music-lib 优先用这个 URL 生成二维码
+    /// 展示，服务端 PNG 是备选。2.0.12 及以前只展示 PNG，扫码能确认但会话
+    /// 不落地，2.0.13 起改为优先扫这个 URL，并加轮询日志定位。
+    let scanURL: String
     let cookieHeader: String
 }
 
@@ -1773,18 +1777,31 @@ extension QishuiAPI {
         } else if !rawQR.isEmpty {
             qrContent = rawQR
         }
+        let scanURL = firstString(payload, keys: ["qrcode_index_url", "web_url"]) ?? ""
         if qrImageData == nil, qrContent.isEmpty {
-            qrContent = firstString(payload, keys: ["qrcode_index_url", "web_url"]) ?? ""
+            qrContent = scanURL
         }
         guard qrImageData != nil || !qrContent.isEmpty else { throw QishuiAPIError.invalidResponse }
         let initialCookies = Self.responseCookieHeader(response, for: url)
         updateQRCookeJar(for: token, header: initialCookies.isEmpty ? nil : initialCookies)
+        BeansLogger.shared.log(
+            "[QishuiQR] create keys=\(payload.keys.sorted().joined(separator: ",")) frontier=\(String(describing: payload["is_frontier"])) png=\(qrImageData != nil) scanURL=\(!scanURL.isEmpty) cookies=\(Self.cookieNames(initialCookies).joined(separator: ","))",
+            level: .info
+        )
         return QishuiQRCodeSession(
             token: token,
             qrContent: qrContent,
             qrImageData: qrImageData,
+            scanURL: scanURL,
             cookieHeader: initialCookies
         )
+    }
+
+    /// Cookie 头里只取名字不取値（诊断日志用，会话値不进日志）。
+    static func cookieNames(_ header: String) -> [String] {
+        header.split(separator: ";").map {
+            $0.trimmingCharacters(in: .whitespaces).split(separator: "=").first.map(String.init) ?? ""
+        }.filter { !$0.isEmpty }
     }
 
     /// POST /passport/web/check_qrconnect/ 轮询。状态语义对齐 music-lib：
@@ -1850,6 +1867,10 @@ extension QishuiAPI {
             }
         }
         updateQRCookeJar(for: session.token, header: merged.isEmpty ? nil : merged)
+        BeansLogger.shared.log(
+            "[QishuiQR] check status=\((firstString(payload, keys: ["status"]) ?? "").lowercased()) err=\(Int(number(payload["error_code"]))) flow=\(firstString(payload, keys: ["account_flow"]) ?? "-") redirect=\(redirectRaw != nil) respCookies=\(Self.cookieNames(Self.responseCookieHeader(response, for: url)).joined(separator: ",")) merged=\(Self.cookieNames(merged).joined(separator: ",")) session=\(Self.hasSessionCookie(merged))",
+            level: .info
+        )
         if Self.hasSessionCookie(merged) {
             updateQRCookeJar(for: session.token, header: nil)
             return .success(cookie: merged)
