@@ -83,7 +83,16 @@ final class QishuiMusicAuth: ObservableObject {
 
     private func apply(_ value: [String: String]) {
         let cookie = value["cookie"] ?? ""
-        let loggedIn = cookie.contains("sessionid=") || cookie.contains("sessionid_ss=")
+        // 会话判据与 QishuiAPI.hasSessionCookie 对齐：字节系任一会话
+        // Cookie（sessionid / sessionid_ss / sid_tt / sid_guard）非空即登录。
+        let sessionNames: Set<String> = ["sessionid", "sessionid_ss", "sid_tt", "sid_guard"]
+        let loggedIn = cookie.split(separator: ";").contains { part in
+            let pair = part.trimmingCharacters(in: .whitespaces)
+            guard let eq = pair.firstIndex(of: "=") else { return false }
+            let name = String(pair[..<eq]).trimmingCharacters(in: .whitespaces)
+            let val = String(pair[pair.index(after: eq)...]).trimmingCharacters(in: .whitespaces)
+            return sessionNames.contains(name) && !val.isEmpty
+        }
         let nextNickname = value["nickname"] ?? ""
         let nextUserID = value["userID"] ?? ""
         let nextAvatar = URL(string: value["avatar"] ?? "")

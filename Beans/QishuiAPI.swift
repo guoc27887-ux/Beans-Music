@@ -193,6 +193,9 @@ final class QishuiAPI: ObservableObject {
     private let directInstallID: String
     private var directWarmedUp = false
     private let directStateLock = NSLock()
+    /// 扫码登录轮询期间按 token 累积的 Cookie 罐（对齐 music-lib 的 pending
+    /// state：每轮把响应新下的 Cookie 合并后带上下一轮，不能只靠共享存储）。
+    private var qrCookieJars: [String: String] = [:]
     private let songSearchCache = NSCache<NSString, QishuiCacheBox<[Song]>>()
     private let playlistSearchCache = NSCache<NSString, QishuiCacheBox<[Playlist]>>()
     private let recommendationCache = NSCache<NSString, QishuiCacheBox<[Playlist]>>()
@@ -1674,11 +1677,13 @@ extension QishuiAPI {
             qrContent = firstString(payload, keys: ["qrcode_index_url", "web_url"]) ?? ""
         }
         guard qrImageData != nil || !qrContent.isEmpty else { throw QishuiAPIError.invalidResponse }
+        let initialCookies = Self.responseCookieHeader(response, for: url)
+        updateQRCookeJar(for: token, header: initialCookies.isEmpty ? nil : initialCookies)
         return QishuiQRCodeSession(
             token: token,
             qrContent: qrContent,
             qrImageData: qrImageData,
-            cookieHeader: Self.responseCookieHeader(response, for: url)
+            cookieHeader: initialCookies
         )
     }
 
@@ -1698,8 +1703,9 @@ extension QishuiAPI {
         request.setValue(Self.passportUserAgent, forHTTPHeaderField: "User-Agent")
         request.setValue("https://api.qishui.com/", forHTTPHeaderField: "Referer")
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        if !session.cookieHeader.isEmpty {
-            request.setValue(session.cookieHeader, forHTTPHeaderField: "Cookie")
+        let jarCookie = qrCookieJar(for: session.token) ?? session.cookieHeader
+        if !jarCookie.isEmpty {
+            request.setValue(jarCookie, forHTTPHeaderField: "Cookie")
         }
         request.httpBody = Self.formEncoded([
             ("token", session.token),
@@ -1710,22 +1716,44 @@ extension QishuiAPI {
             ("is_new_login", "1"),
         ])
         let (data, response) = try await directSession.data(for: request)
-        let stored = (HTTPCookieStorage.shared.cookies(for: url) ?? [])
-            .map { "\($0.name)=\($0.value)" }
-            .joined(separator: "; ")
-        let merged = Self.mergedCookieHeader([
-            session.cookieHeader,
-            Self.responseCookieHeader(response, for: url),
-            stored,
-        ])
-        let cookiePairs = merged.split(separator: ";").map { $0.trimmingCharacters(in: .whitespaces) }
-        if cookiePairs.contains(where: { $0.hasPrefix("sessionid=") || $0.hasPrefix("sessionid_ss=") }) {
-            return .success(cookie: merged)
-        }
         guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             return .waiting
         }
         let payload = dictionary(root["data"]) ?? root
+        let stored = (HTTPCookieStorage.shared.cookies(for: url) ?? [])
+            .map { "\($0.name)=\($0.value)" }
+            .joined(separator: "; ")
+        var merged = Self.mergedCookieHeader([
+            jarCookie,
+            Self.responseCookieHeader(response, for: url),
+            stored,
+        ])
+        // 确认后服务端常只回 redirect_url：真正的会话 Cookie 要访问那个
+        // 地址才下发（music-lib 把 redirect_url 透出给上层正是为此）。
+        // 不跟这一步，轮询永远停在 confirmed，登录态永远落不了地。
+        let redirectRaw = firstString(payload, keys: ["redirect_url"]) ?? firstString(root, keys: ["redirect_url"])
+        if let redirectRaw, let redirectURL = URL(string: redirectRaw) {
+            var redirectRequest = URLRequest(url: redirectURL)
+            redirectRequest.setValue(Self.passportUserAgent, forHTTPHeaderField: "User-Agent")
+            if !merged.isEmpty {
+                redirectRequest.setValue(merged, forHTTPHeaderField: "Cookie")
+            }
+            if let (_, redirectResponse) = try? await directSession.data(for: redirectRequest) {
+                let redirectStored = (HTTPCookieStorage.shared.cookies(for: redirectURL) ?? [])
+                    .map { "\($0.name)=\($0.value)" }
+                    .joined(separator: "; ")
+                merged = Self.mergedCookieHeader([
+                    merged,
+                    Self.responseCookieHeader(redirectResponse, for: redirectURL),
+                    redirectStored,
+                ])
+            }
+        }
+        updateQRCookeJar(for: session.token, header: merged.isEmpty ? nil : merged)
+        if Self.hasSessionCookie(merged) {
+            updateQRCookeJar(for: session.token, header: nil)
+            return .success(cookie: merged)
+        }
         let status = (firstString(payload, keys: ["status"]) ?? "").lowercased()
         let errorCode = Int(number(payload["error_code"]))
         let accountFlow = (firstString(payload, keys: ["account_flow"]) ?? "").lowercased()
@@ -1748,6 +1776,33 @@ extension QishuiAPI {
             }
             return .waiting
         }
+    }
+
+    /// 字节系会话 Cookie 名（music-lib sodaCookiesHaveSession 的判据集合）：
+    /// 任一存在且非空即视为已登录，不只认 sessionid / sessionid_ss。
+    private static let sessionCookieNames: Set<String> = ["sessionid", "sessionid_ss", "sid_tt", "sid_guard"]
+
+    private static func hasSessionCookie(_ header: String) -> Bool {
+        for part in header.split(separator: ";") {
+            let pair = part.trimmingCharacters(in: .whitespaces)
+            guard let eq = pair.firstIndex(of: "=") else { continue }
+            let name = String(pair[..<eq]).trimmingCharacters(in: .whitespaces)
+            let value = String(pair[pair.index(after: eq)...]).trimmingCharacters(in: .whitespaces)
+            if sessionCookieNames.contains(name), !value.isEmpty { return true }
+        }
+        return false
+    }
+
+    private func qrCookieJar(for token: String) -> String? {
+        directStateLock.lock()
+        defer { directStateLock.unlock() }
+        return qrCookieJars[token]
+    }
+
+    private func updateQRCookeJar(for token: String, header: String?) {
+        directStateLock.lock()
+        defer { directStateLock.unlock() }
+        qrCookieJars[token] = header
     }
 
     private static func formEncoded(_ pairs: [(String, String)]) -> Data {

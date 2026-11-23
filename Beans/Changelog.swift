@@ -77,6 +77,15 @@ enum ChangelogStore {
     /// 否则更新说明弹窗在远端拉取失败时展示的仍是旧版本条目（logs.first）。
     static let logs: [VersionLog] = [
         VersionLog(
+            id: "2.0.10",
+            version: "2.0.10",
+            title: "汽水扫码登录落地修复",
+            features: [],
+            fixes: [
+                "修复汽水扫码后登录态不落地的问题：确认后跟随服务端跳转领取会话，并补齐会话识别与登录过程中的 Cookie 累积"
+            ]
+        ),
+        VersionLog(
             id: "2.0.9",
             version: "2.0.9",
             title: "汽水登录二维码修复",
