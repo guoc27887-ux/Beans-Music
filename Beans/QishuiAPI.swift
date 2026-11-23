@@ -2277,7 +2277,7 @@ extension QishuiAPI {
     /// 任一存在且非空即视为已登录，不只认 sessionid / sessionid_ss。
     private static let sessionCookieNames: Set<String> = ["sessionid", "sessionid_ss", "sid_tt", "sid_guard"]
 
-    private static func hasSessionCookie(_ header: String) -> Bool {
+    static func hasSessionCookie(_ header: String) -> Bool {
         for part in header.split(separator: ";") {
             let pair = part.trimmingCharacters(in: .whitespaces)
             guard let eq = pair.firstIndex(of: "=") else { continue }

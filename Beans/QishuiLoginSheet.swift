@@ -18,6 +18,7 @@ struct QishuiLoginSheet: View {
     @State private var mfaRetrySeconds = 0
     @State private var mfaBusy = false
     @State private var mfaError: String?
+    @State private var showWebLogin = false
 
     var body: some View {
         let _ = theme.accent
@@ -49,6 +50,19 @@ struct QishuiLoginSheet: View {
                         .shadow(color: .black.opacity(0.2), radius: 20, y: 10)
 
                     statusView
+
+                    Button {
+                        showWebLogin = true
+                    } label: {
+                        Label("扫码登不上？用官方网页登录", systemImage: "globe")
+                            .font(BeansFont.appFont(13, .semibold))
+                            .foregroundStyle(Color.beansSage)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 9)
+                            .background { BeansSurface(shape: Capsule()) }
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(GlassPressButtonStyle(scale: 0.96))
                 }
 
                 Spacer()
@@ -57,6 +71,14 @@ struct QishuiLoginSheet: View {
         }
         .onAppear { startLogin() }
         .onDisappear { timer?.invalidate() }
+        .sheet(isPresented: $showWebLogin) {
+            QishuiWebLoginPanel {
+                timer?.invalidate()
+                timer = nil
+                status = .success
+                dismiss()
+            }
+        }
     }
 
     @ViewBuilder
