@@ -241,8 +241,10 @@ final class QishuiAPI: ObservableObject {
         if let cached { return cached }
 
         // 直连优先：汽水 PC 网页端搜索 /luna/pc/search/track（参考 music-lib
-        // sodaPCWebSearchURL，无需签名）。直连有结果直接用，抛错或为空才落到
-        // 下面的网关分页逻辑兜底。
+        // sodaPCWebSearchURL，无需签名）。网页端无结果时再走安卓端搜索
+        // /luna/search/track（music-lib fetchTrackSearch 的第三顺位兜底；
+        // 网页端在部分网络下会被风控回空，安卓端参数面不同）。两路直连都
+        // 抛错或为空才落到下面的网关分页逻辑兜底。
         if let direct = try? await directSearchSongs(
             keyword: trimmed,
             targetCount: targetCount,
@@ -250,6 +252,14 @@ final class QishuiAPI: ObservableObject {
         ), !direct.isEmpty {
             cache(direct, in: songSearchCache, key: cacheKey)
             return direct
+        }
+        if let android = try? await directAndroidSearchSongs(
+            keyword: trimmed,
+            targetCount: targetCount,
+            onPartialResults: onPartialResults
+        ), !android.isEmpty {
+            cache(android, in: songSearchCache, key: cacheKey)
+            return android
         }
 
         var songs: [Song] = []
@@ -1083,6 +1093,119 @@ extension QishuiAPI {
                 path: "luna/pc/search/track",
                 queryItems: directWebSearchItems(keyword: keyword, cursor: cursor, count: pageSize)
             )
+            let entities = pcResultEntities(root, key: "track")
+            guard !entities.isEmpty else { break }
+            var added = 0
+            for entity in entities {
+                guard let song = makeSong(normalizedPCEntity(entity)),
+                      seen.insert(song.identityKey).inserted else { continue }
+                songs.append(song)
+                added += 1
+                if songs.count >= targetCount { break }
+            }
+            if added > 0, let onPartialResults {
+                await onPartialResults(Array(songs.prefix(targetCount)))
+            }
+            cursor += entities.count
+            if entities.count < pageSize { break }
+        }
+        return Array(songs.prefix(targetCount))
+    }
+
+    /// 安卓端搜索公共参数（music-lib sodaAndroidSearchParams，含其内置的
+    /// 设备标识；aid 在拼 URL 时覆盖为 386088，与原实现一致）。
+    private func directAndroidSearchItems(keyword: String, cursor: Int, count: Int) -> [URLQueryItem] {
+        let values: [(String, String)] = [
+            ("device_platform", "android"),
+            ("os", "android"),
+            ("ssmix", "a"),
+            ("cdid", "46556f98-1720-4248-83da-62b74b60b46a"),
+            ("channel", "xiaomi_8478_64"),
+            ("app_name", "luna"),
+            ("version_code", "100198030"),
+            ("version_name", "19.8.0"),
+            ("manifest_version_code", "100198030"),
+            ("update_version_code", "100198030"),
+            ("resolution", "1080*1920"),
+            ("dpi", "480"),
+            ("device_type", "ABR-AL80"),
+            ("device_brand", "HUAWEI"),
+            ("language", "zh"),
+            ("os_api", "35"),
+            ("os_version", "15"),
+            ("ac", "wifi"),
+            ("device_model", "ABR-AL80"),
+            ("save_power", "0"),
+            ("font_size", "1.00"),
+            ("luna_first_launch_apk_type", "normal_apk"),
+            ("diversion_channel_name", "xiaomi_8478_64"),
+            ("is_car_play", "0"),
+            ("battery", "0.99"),
+            ("network_speed", "10156"),
+            ("hybrid_version_code", "100198030"),
+            ("tz_name", "Asia/Shanghai"),
+            ("tz_offset", "28800"),
+            ("luna_register_time", "1784311292"),
+            ("diversion_category_level_two", "Xiaomi商店-自然"),
+            ("package", "com.luna.music"),
+            ("charge", "0"),
+            ("luna_apk_type", "normal_apk"),
+            ("output_device_type", "Phone"),
+            ("volume", "1.00"),
+            ("brightness", "0.08"),
+            ("need_personal_recommend", "1"),
+            ("is_teen_mode", "0"),
+            ("sim_region", "cn"),
+            ("diversion_category_level_one", "厂商商店-自然"),
+            ("android_device_type", "default"),
+            ("iid", "2204957404569386"),
+            ("device_id", "2204957404565290"),
+            ("_rticket", String(Int64(Date().timeIntervalSince1970 * 1000))),
+            ("q", keyword),
+            ("cursor", String(cursor)),
+            ("count", String(count)),
+            ("aid", "386088"),
+        ]
+        return values.map { URLQueryItem(name: $0.0, value: $0.1) }
+    }
+
+    /// 安卓端单曲搜索 /luna/search/track：响应结构与 PC 网页端一致
+    /// （result_groups[].data[].entity.track，music-lib 同一套解析）。
+    private func directAndroidSearchSongs(
+        keyword: String,
+        targetCount: Int,
+        onPartialResults: (@MainActor ([Song]) -> Void)?
+    ) async throws -> [Song] {
+        let pageSize = 20
+        var songs: [Song] = []
+        var seen = Set<String>()
+        var cursor = 0
+        for _ in 0..<12 where songs.count < targetCount {
+            guard !Task.isCancelled else { throw CancellationError() }
+            guard var components = URLComponents(string: "https://api.qishui.com/luna/search/track") else {
+                throw QishuiAPIError.invalidURL
+            }
+            components.queryItems = directAndroidSearchItems(keyword: keyword, cursor: cursor, count: pageSize)
+            guard let url = components.url else { throw QishuiAPIError.invalidURL }
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 25
+            request.cachePolicy = .reloadIgnoringLocalCacheData
+            request.setValue("com.luna.music/100198030 (Linux; U; Android 15; zh_CN_#Hans; ABR-AL80; Build/V417IR;tt-ok/3.12.13.19)", forHTTPHeaderField: "User-Agent")
+            request.setValue("application/json; charset=UTF-8", forHTTPHeaderField: "Content-Type")
+            let cookie = QishuiMusicAuth.shared.cookieHeader
+            if !cookie.isEmpty {
+                request.setValue(cookie, forHTTPHeaderField: "Cookie")
+            }
+            let (data, response) = try await directSession.data(for: request)
+            guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+                throw QishuiAPIError.server("汽水音乐安卓端搜索失败")
+            }
+            guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                throw QishuiAPIError.invalidResponse
+            }
+            if let code = root["status_code"] as? NSNumber, code.intValue != 0 {
+                throw QishuiAPIError.server("汽水音乐安卓端搜索失败")
+            }
             let entities = pcResultEntities(root, key: "track")
             guard !entities.isEmpty else { break }
             var added = 0
