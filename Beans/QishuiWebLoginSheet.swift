@@ -1,20 +1,25 @@
 import SwiftUI
 import WebKit
 
-// MARK: - 汽水官方网页登录（应用内打开 qishui.com 官方登录，登录后读取 Cookie）
-// 原理：WKWebView 打开汽水官网，页面自带官方登录 SDK（扫码 / 手机号，
-// 签名与风控都由官方 JS 处理），用户在页面内完成登录后，登录态 Cookie
-// （sessionid / sid_tt 等）写入 WKWebView 默认 Cookie 存储，应用读取
-// 这些 Cookie 存进 QishuiMusicAuth 即完成登录。
+// MARK: - 汽水官方网页登录（应用内打开官方授权页，登录后读取 Cookie）
+// 原理：先用 passport get_qrcode 拿到官方授权页地址（qrcode_index_url，
+// bff-pc.qishui.com 的 sdk-next 页），在 WKWebView 里打开它。授权页自带
+// 官方登录 SDK（扫码 / 手机号，签名与风控都由官方 JS 处理，轮询带签名
+// 不会被限频锁死），用户在页内完成登录后，登录态 Cookie（sessionid /
+// sid_tt 等）写入 WKWebView 默认 Cookie 存储，应用读取后存进
+// QishuiMusicAuth 即完成登录。
 // 背景：第三方 check_qrconnect 轮询在扫码确认后会被服务端限频
-// （error_code 7「访问太频繁」）锁死数分钟，会话 Cookie 拿不到；
-// 官方页面自己的轮询带签名，不受此限（2026-11-23 对照实验实证）。
+// （error_code 7「访问太频繁」）锁死数分钟，会话 Cookie 拿不到，
+// music-lib 参考实现原版对照实验同样失败（2026-11-23 实证）。
+// 注意：www.qishui.com 根路径只是 App 下载宣传页，没有登录入口，
+// 不能拿它当登录页（2.0.16 踩过）。
 
 struct QishuiWebLoginPanel: View {
     @EnvironmentObject private var theme: ThemeStore
     @Environment(\.dismiss) private var dismiss
     let onSuccess: () -> Void
 
+    @State private var authURL: String?
     @State private var pageLoaded = false
     @State private var syncing = false
     @State private var message = ""
@@ -23,7 +28,7 @@ struct QishuiWebLoginPanel: View {
     var body: some View {
         let _ = theme.accent
         VStack(spacing: 10) {
-            Text("在下方汽水官方网页中点右上角「登录」，用汽水 App 扫码或手机号完成登录，登录成功后会自动同步")
+            Text("在下方汽水官方授权页中完成登录（扫码或手机号），登录成功后会自动同步")
                 .font(BeansFont.appFont(12))
                 .foregroundStyle(Color.beansComment)
                 .multilineTextAlignment(.center)
@@ -31,13 +36,19 @@ struct QishuiWebLoginPanel: View {
                 .padding(.top, 14)
 
             ZStack {
-                QishuiWebView(onLoaded: { pageLoaded = true })
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
-                    .padding(.horizontal, 20)
+                if let authURL {
+                    QishuiWebView(urlString: authURL, onLoaded: { pageLoaded = true })
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
+                        .padding(.horizontal, 20)
+                } else {
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(Color.beansComment.opacity(0.08))
+                        .padding(.horizontal, 20)
+                }
 
-                if !pageLoaded {
-                    ProgressView("正在加载汽水音乐…")
+                if authURL == nil || !pageLoaded {
+                    ProgressView(authURL == nil ? "正在打开官方授权页…" : "正在加载授权页…")
                         .tint(Color.beansAmber)
                 }
             }
@@ -73,6 +84,11 @@ struct QishuiWebLoginPanel: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 12)
         }
+        .task {
+            if authURL == nil {
+                await loadAuthURL()
+            }
+        }
         .onReceive(Timer.publish(every: 2.5, on: .main, in: .common).autoconnect()) { _ in
             // 自动检测：登录态 Cookie 一出现就直接完成，不必手动点同步。
             if !finished {
@@ -85,6 +101,19 @@ struct QishuiWebLoginPanel: View {
         }
     }
 
+    /// 取官方授权页地址：get_qrcode 回包里的 qrcode_index_url（sdk-next 页）。
+    private func loadAuthURL() async {
+        do {
+            let session = try await QishuiAPI.shared.createQRCode()
+            authURL = session.scanURL.isEmpty ? session.qrContent : session.scanURL
+            if authURL?.isEmpty ?? true {
+                message = "官方授权页地址为空，请关闭后重试"
+            }
+        } catch {
+            message = "打开官方授权页失败：\(error.localizedDescription)"
+        }
+    }
+
     // MARK: - 同步登录态
 
     private func syncNow() {
@@ -93,7 +122,7 @@ struct QishuiWebLoginPanel: View {
         readCookies { header in
             syncing = false
             guard let header else {
-                message = "未检测到有效登录态，请先在网页中完成汽水登录"
+                message = "未检测到有效登录态，请先在授权页中完成汽水登录"
                 return
             }
             finish(header: header)
@@ -134,9 +163,10 @@ struct QishuiWebLoginPanel: View {
     }
 }
 
-// MARK: - WKWebView 封装（打开汽水官网）
+// MARK: - WKWebView 封装（打开官方授权页）
 
 struct QishuiWebView: UIViewRepresentable {
+    let urlString: String
     let onLoaded: () -> Void
 
     func makeCoordinator() -> Coordinator {
@@ -149,7 +179,7 @@ struct QishuiWebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.customUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
         webView.navigationDelegate = context.coordinator
-        if let url = URL(string: "https://www.qishui.com/") {
+        if let url = URL(string: urlString) {
             webView.load(URLRequest(url: url))
         }
         return webView
