@@ -10,6 +10,15 @@ struct QishuiLoginSheet: View {
     @State private var status: QRStatus = .loading
     @State private var timer: Timer?
 
+    // 扫码后短信验证（MFA）的界面状态
+    @State private var mfaChallenge: QishuiMFAChallenge?
+    @State private var mfaUseUpSMS = false
+    @State private var mfaCode = ""
+    @State private var mfaMobile = ""
+    @State private var mfaRetrySeconds = 0
+    @State private var mfaBusy = false
+    @State private var mfaError: String?
+
     var body: some View {
         let _ = theme.accent
         ZStack {
@@ -29,14 +38,18 @@ struct QishuiLoginSheet: View {
                     .foregroundStyle(Color.beansComment)
                     .multilineTextAlignment(.center)
 
-                qrArea
-                    .frame(width: 250, height: 250)
-                    .padding(18)
-                    .background { BeansSurface(shape: RoundedRectangle(cornerRadius: 30, style: .continuous)) }
-                    .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-                    .shadow(color: .black.opacity(0.2), radius: 20, y: 10)
+                if let challenge = mfaChallenge {
+                    mfaView(challenge)
+                } else {
+                    qrArea
+                        .frame(width: 250, height: 250)
+                        .padding(18)
+                        .background { BeansSurface(shape: RoundedRectangle(cornerRadius: 30, style: .continuous)) }
+                        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+                        .shadow(color: .black.opacity(0.2), radius: 20, y: 10)
 
-                statusView
+                    statusView
+                }
 
                 Spacer()
             }
@@ -178,10 +191,17 @@ struct QishuiLoginSheet: View {
             timer?.invalidate()
             timer = nil
             status = .expired
-        case .verifyRequired:
+        case .verifyRequired(let challenge):
             timer?.invalidate()
             timer = nil
-            status = .error("账号触发了短信验证，本版本暂不支持，请稍后再试")
+            mfaChallenge = challenge
+            mfaUseUpSMS = challenge.smsMode == "up"
+            mfaCode = ""
+            mfaMobile = challenge.mobile
+            mfaError = nil
+            if !mfaUseUpSMS {
+                sendMFACode()
+            }
         case .failed(let message):
             timer?.invalidate()
             timer = nil
@@ -189,12 +209,184 @@ struct QishuiLoginSheet: View {
         case .success(let cookie):
             timer?.invalidate()
             timer = nil
-            status = .success
-            QishuiMusicAuth.shared.saveLogin(cookie: cookie)
-            Task {
-                await QishuiAPI.shared.refreshProfile()
-                await MainActor.run { dismiss() }
+            completeLogin(cookie: cookie)
+        }
+    }
+
+    private func completeLogin(cookie: String) {
+        status = .success
+        QishuiMusicAuth.shared.saveLogin(cookie: cookie)
+        Task {
+            await QishuiAPI.shared.refreshProfile()
+            await MainActor.run { dismiss() }
+        }
+    }
+
+    // MARK: - 短信验证（MFA）
+
+    private func mfaView(_ challenge: QishuiMFAChallenge) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "lock.shield.fill")
+                .font(.system(size: 34))
+                .foregroundStyle(Color.beansSage)
+            Text("账号需要短信验证")
+                .font(BeansFont.appFont(17, .semibold))
+                .foregroundStyle(Color.beansLabel)
+
+            if mfaUseUpSMS {
+                Text("请用账号绑定的手机号发送下面这条短信到指定号码，发送后点「我已发送」：")
+                    .font(BeansFont.appFont(13))
+                    .foregroundStyle(Color.beansComment)
+                    .multilineTextAlignment(.center)
+                if !challenge.upSMSContent.isEmpty {
+                    Text(challenge.upSMSContent)
+                        .font(BeansFont.appFont(15, .semibold))
+                        .foregroundStyle(Color.beansLabel)
+                        .textSelection(.enabled)
+                }
+                if !challenge.upSMSMobile.isEmpty {
+                    Text("发送到：\(challenge.upSMSMobile)")
+                        .font(BeansFont.appFont(14))
+                        .foregroundStyle(Color.beansLabel)
+                        .textSelection(.enabled)
+                }
+                GlassButton(title: mfaBusy ? "确认中…" : "我已发送，继续", systemName: "checkmark.circle", prominent: true) {
+                    verifyUpSMS()
+                }
+                .disabled(mfaBusy)
+                if challenge.canUpSMS {
+                    Button("改用验证码验证") {
+                        mfaUseUpSMS = false
+                        mfaError = nil
+                        sendMFACode()
+                    }
+                    .font(BeansFont.appFont(13))
+                    .foregroundStyle(Color.beansComment)
+                }
+            } else {
+                Text("验证码会发送到 \(mfaMobile.isEmpty ? "账号绑定的手机号" : mfaMobile)")
+                    .font(BeansFont.appFont(13))
+                    .foregroundStyle(Color.beansComment)
+                    .multilineTextAlignment(.center)
+                HStack(spacing: 10) {
+                    TextField("6 位验证码", text: $mfaCode)
+                        .keyboardType(.numberPad)
+                        .font(BeansFont.appFont(16))
+                        .multilineTextAlignment(.center)
+                        .padding(.vertical, 10)
+                        .background { BeansSurface(shape: RoundedRectangle(cornerRadius: 12, style: .continuous)) }
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    Button(mfaRetrySeconds > 0 ? "\(mfaRetrySeconds)s" : "发送验证码") {
+                        sendMFACode()
+                    }
+                    .font(BeansFont.appFont(13, .semibold))
+                    .foregroundStyle(mfaRetrySeconds > 0 || mfaBusy ? Color.beansComment : Color.beansSage)
+                    .disabled(mfaRetrySeconds > 0 || mfaBusy)
+                }
+                GlassButton(title: mfaBusy ? "验证中…" : "验证并登录", systemName: "checkmark.seal", prominent: true) {
+                    submitMFACode()
+                }
+                .disabled(mfaBusy || mfaCode.trimmingCharacters(in: .whitespaces).count < 4)
+                if challenge.canUpSMS {
+                    Button("改用上行短信验证") {
+                        mfaUseUpSMS = true
+                        mfaError = nil
+                    }
+                    .font(BeansFont.appFont(13))
+                    .foregroundStyle(Color.beansComment)
+                }
             }
+
+            if let mfaError {
+                Text(mfaError)
+                    .font(BeansFont.appFont(13))
+                    .foregroundStyle(Color.red.opacity(0.85))
+                    .multilineTextAlignment(.center)
+            }
+
+            Button("重新扫码") {
+                mfaChallenge = nil
+                mfaError = nil
+                startLogin()
+            }
+            .font(BeansFont.appFont(13))
+            .foregroundStyle(Color.beansComment)
+        }
+        .frame(maxWidth: 320)
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
+            if mfaRetrySeconds > 0 { mfaRetrySeconds -= 1 }
+        }
+    }
+
+    private func sendMFACode() {
+        guard let challenge = mfaChallenge, !mfaBusy else { return }
+        mfaBusy = true
+        Task {
+            do {
+                let result = try await QishuiAPI.shared.sendSMSCode(challenge: challenge)
+                await MainActor.run {
+                    mfaBusy = false
+                    if !result.mobile.isEmpty { mfaMobile = result.mobile }
+                    mfaRetrySeconds = result.retryTime > 0 ? result.retryTime : 60
+                    mfaError = nil
+                }
+            } catch {
+                await MainActor.run {
+                    mfaBusy = false
+                    mfaError = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    private func submitMFACode() {
+        guard let challenge = mfaChallenge, let session, !mfaBusy else { return }
+        mfaBusy = true
+        Task {
+            do {
+                let result = try await QishuiAPI.shared.validateSMSCode(challenge: challenge, code: mfaCode, session: session)
+                await MainActor.run {
+                    mfaBusy = false
+                    finishMFA(result)
+                }
+            } catch {
+                await MainActor.run {
+                    mfaBusy = false
+                    mfaError = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    private func verifyUpSMS() {
+        guard let challenge = mfaChallenge, let session, !mfaBusy else { return }
+        mfaBusy = true
+        Task {
+            do {
+                let result = try await QishuiAPI.shared.verifyUpSMS(challenge: challenge, session: session)
+                await MainActor.run {
+                    mfaBusy = false
+                    finishMFA(result)
+                }
+            } catch {
+                await MainActor.run {
+                    mfaBusy = false
+                    mfaError = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    private func finishMFA(_ result: QishuiQRCodeStatus) {
+        switch result {
+        case .success(let cookie):
+            mfaChallenge = nil
+            mfaError = nil
+            completeLogin(cookie: cookie)
+        case .failed(let message):
+            mfaError = message
+        default:
+            mfaError = "验证未完成，请重试"
         }
     }
 }

@@ -77,6 +77,17 @@ enum ChangelogStore {
     /// 否则更新说明弹窗在远端拉取失败时展示的仍是旧版本条目（logs.first）。
     static let logs: [VersionLog] = [
         VersionLog(
+            id: "2.0.15",
+            version: "2.0.15",
+            title: "汽水扫码短信验证补全",
+            features: [
+                "汽水扫码后账号触发短信验证时，可在应用内完成：接收验证码填写提交，或按提示发送上行短信后确认"
+            ],
+            fixes: [
+                "汽水登录限频退避（2.0.14 同内容）：扫码确认后轮询撞限频改为退避 60 秒再查"
+            ]
+        ),
+        VersionLog(
             id: "2.0.14",
             version: "2.0.14",
             title: "汽水登录限频退避",

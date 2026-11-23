@@ -952,12 +952,34 @@ struct QishuiQRCodeSession {
     let cookieHeader: String
 }
 
+/// 扫码后触发的短信验证（MFA）挑战：字段来自 check_qrconnect 的 verify
+/// 回包（account_flow=verify / error_code=2046），提取方式对齐 music-lib
+/// sodaMFARequiredResult（递归找 encrypt_uid 等字段 + 收集 std_verify_* 参数）。
+struct QishuiMFAChallenge {
+    let token: String
+    let encryptUID: String
+    /// std_verify_* / passport_mfa_retry_tag 参数对（已按 key 排序）。
+    let verifyParams: [(key: String, value: String)]
+    /// 短信验证的绑定手机号（服务端回包里的 mobile，通常已打码）。
+    let mobile: String
+    /// 上行短信的目标号码（channel_mobile）与内容（sms_content）。
+    let upSMSMobile: String
+    let upSMSContent: String
+    let canUpSMS: Bool
+    /// "sms" = 收码验证；"up" = 只能上行短信；"" = 回包没明说，默认按收码走。
+    let smsMode: String
+
+    func verifyParam(_ key: String) -> String? {
+        verifyParams.first { $0.key == key }?.value
+    }
+}
+
 enum QishuiQRCodeStatus {
     case waiting
     case scanned
     case success(cookie: String)
     case expired
-    case verifyRequired
+    case verifyRequired(QishuiMFAChallenge)
     case failed(String)
 }
 
@@ -1816,9 +1838,11 @@ extension QishuiAPI {
     /// 会话 Cookie 下发），expired = 过期，error_code 7 = 限频（继续轮询），
     /// error_code 2046 / account_flow=verify = 需要短信验证（本版不支持）。
     /// 成功判据：合并 Cookie 里出现 sessionid。
-    func checkQRCode(session: QishuiQRCodeSession) async throws -> QishuiQRCodeStatus {
+    func checkQRCode(session: QishuiQRCodeSession, verifyChallenge: QishuiMFAChallenge? = nil) async throws -> QishuiQRCodeStatus {
         // 限频冷却中：不打上游，直接回缓存状态（music-lib sodaThrottledResult）。
-        if let gate = Self.qrPollGates[session.token], Date() < gate.backoffUntil {
+        // MFA 完成后的最终确认（verifyChallenge 非空）直通，不走闸门
+        // （music-lib sodaCheckQRConnectWithState 同样绕过轮询闸门）。
+        if verifyChallenge == nil, let gate = Self.qrPollGates[session.token], Date() < gate.backoffUntil {
             return gate.sawScanned ? .scanned : .waiting
         }
         guard var components = URLComponents(string: "https://api.qishui.com/passport/web/check_qrconnect/") else {
@@ -1835,14 +1859,33 @@ extension QishuiAPI {
             request.setValue(jarCookie, forHTTPHeaderField: "Cookie")
         }
         // 表单字段顺序对齐 music-lib sodaEncodePassportForm 的 check 顺序。
-        request.httpBody = Self.formEncoded([
+        var formPairs: [(String, String)] = [
             ("need_logo", "false"),
             ("need_short_url", "false"),
             ("is_frontier", "true"),
             ("token", session.token),
             ("is_new_login", "1"),
             ("next", "https://api.qishui.com"),
-        ])
+        ]
+        if let challenge = verifyChallenge {
+            // MFA 完成后的最终确认要带上 std_verify_* 参数（music-lib
+            // sodaCheckQRConnectWithState includeVerifyParams），
+            // 缺 std_verify_way 时补空值。
+            var applied = Set<String>()
+            for key in ["passport_mfa_retry_tag", "std_verify_flow_id", "std_verify_scene", "std_verify_template", "std_verify_token", "std_verify_type", "std_verify_way"] {
+                if let value = challenge.verifyParam(key) {
+                    formPairs.append((key, value))
+                    applied.insert(key)
+                }
+            }
+            for pair in challenge.verifyParams where !applied.contains(pair.key) {
+                formPairs.append((pair.key, pair.value))
+            }
+            if !applied.contains("std_verify_way") {
+                formPairs.append(("std_verify_way", ""))
+            }
+        }
+        request.httpBody = Self.formEncoded(formPairs)
         let (data, response) = try await directSession.data(for: request)
         guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             return .waiting
@@ -1892,7 +1935,11 @@ extension QishuiAPI {
         let accountFlow = (firstString(payload, keys: ["account_flow"]) ?? "").lowercased()
         let sawScanned = (Self.qrPollGates[session.token]?.sawScanned ?? false) || status == "scanned" || status == "confirmed"
         if accountFlow == "verify" || errorCode == 2046 {
-            return .verifyRequired
+            if let challenge = Self.makeMFAChallenge(token: session.token, rawBody: data) {
+                BeansLogger.shared.log("[QishuiQR] mfa required mode=\(challenge.smsMode) mobile=\(!challenge.mobile.isEmpty) upSMS=\(!challenge.upSMSMobile.isEmpty) canUp=\(challenge.canUpSMS)", level: .info)
+                return .verifyRequired(challenge)
+            }
+            return .failed("账号触发了短信验证，但缺少验证参数，请刷新二维码重试")
         }
         if errorCode == 7 {
             // 命中限频：退避 60 秒（music-lib sodaQRRateLimitBackoff），
@@ -1910,13 +1957,320 @@ extension QishuiAPI {
         case "expired":
             return .expired
         case "error", "failed":
+            if let challenge = Self.makeMFAChallenge(token: session.token, rawBody: data) {
+                return .verifyRequired(challenge)
+            }
             return .failed(firstString(payload, keys: ["description"]) ?? firstString(root, keys: ["message"]) ?? "登录失败")
         default:
             if errorCode != 0 {
+                if let challenge = Self.makeMFAChallenge(token: session.token, rawBody: data) {
+                    return .verifyRequired(challenge)
+                }
                 return .failed(firstString(payload, keys: ["description"]) ?? firstString(root, keys: ["message"]) ?? "登录失败")
             }
             return .waiting
         }
+    }
+
+    // MARK: 扫码短信验证（MFA）
+
+    /// 从 check_qrconnect 原始回包里提取 MFA 挑战（music-lib
+    /// sodaMFARequiredResult）：递归找 encrypt_uid / mobile / channel_mobile /
+    /// sms_content，并收集 std_verify_* 验证参数。encrypt_uid 与验证参数
+    /// 都没有时返回 nil。
+    static func makeMFAChallenge(token: String, rawBody: Data) -> QishuiMFAChallenge? {
+        guard let raw = try? JSONSerialization.jsonObject(with: rawBody) else { return nil }
+        let encryptUID = findJSONString(raw, key: "encrypt_uid") ?? ""
+        var collected: [String: String] = [:]
+        collectVerifyParams(raw, into: &collected)
+        let verifyParams = collected.map { (key: $0.key, value: $0.value) }.sorted { $0.key < $1.key }
+        if encryptUID.isEmpty, verifyParams.isEmpty { return nil }
+        let mobile = findJSONString(raw, key: "mobile") ?? ""
+        let upSMSMobile = findJSONString(raw, key: "channel_mobile") ?? ""
+        let upSMSContent = findJSONString(raw, key: "sms_content") ?? ""
+        let bodyText = String(data: rawBody, encoding: .utf8) ?? ""
+        let hasMobileSMSVerify = bodyText.contains("\"verify_way\":\"mobile_sms_verify\"") || bodyText.contains("\"verify_way\": \"mobile_sms_verify\"")
+        let smsMode: String
+        if hasMobileSMSVerify {
+            smsMode = "sms"
+        } else if !upSMSMobile.isEmpty || !upSMSContent.isEmpty {
+            smsMode = "up"
+        } else {
+            smsMode = ""
+        }
+        return QishuiMFAChallenge(
+            token: token,
+            encryptUID: encryptUID,
+            verifyParams: verifyParams,
+            mobile: mobile,
+            upSMSMobile: upSMSMobile,
+            upSMSContent: upSMSContent,
+            canUpSMS: hasMobileSMSVerify && (!upSMSMobile.isEmpty || !upSMSContent.isEmpty),
+            smsMode: smsMode
+        )
+    }
+
+    /// 递归找第一个非空字符串字段（music-lib findSodaJSONString）。
+    static func findJSONString(_ value: Any, key: String) -> String? {
+        if let dict = value as? [String: Any] {
+            if let string = dict[key] as? String, !string.trimmingCharacters(in: .whitespaces).isEmpty {
+                return string
+            }
+            for child in dict.values {
+                if let found = findJSONString(child, key: key) { return found }
+            }
+        } else if let array = value as? [Any] {
+            for child in array {
+                if let found = findJSONString(child, key: key) { return found }
+            }
+        }
+        return nil
+    }
+
+    private static let verifyParamAllowlist: Set<String> = [
+        "passport_mfa_retry_tag", "std_verify_flow_id", "std_verify_scene",
+        "std_verify_template", "std_verify_token", "std_verify_type", "std_verify_way",
+    ]
+
+    /// 递归收集验证参数（music-lib collectSodaVerifyParams）：字典/数组里的
+    /// 同名字段、字符串里藏的查询串或 JSON 都要翻出来。
+    static func collectVerifyParams(_ value: Any, into collected: inout [String: String]) {
+        if let dict = value as? [String: Any] {
+            for (key, child) in dict {
+                if verifyParamAllowlist.contains(key) {
+                    if let string = child as? String, !string.trimmingCharacters(in: .whitespaces).isEmpty {
+                        collected[key] = string.trimmingCharacters(in: .whitespaces)
+                    } else if let number = child as? NSNumber {
+                        collected[key] = number.stringValue
+                    }
+                }
+                collectVerifyParams(child, into: &collected)
+            }
+        } else if let array = value as? [Any] {
+            for child in array { collectVerifyParams(child, into: &collected) }
+        } else if let text = value as? String {
+            let trimmed = text.trimmingCharacters(in: .whitespaces)
+            if trimmed.contains("std_verify_") || trimmed.contains("passport_mfa_retry_tag") {
+                var queryText = trimmed
+                if let q = queryText.firstIndex(of: "?") {
+                    queryText = String(queryText[queryText.index(after: q)...])
+                }
+                if let components = URLComponents(string: "https://placeholder.invalid/?" + queryText) {
+                    for item in components.queryItems ?? [] where verifyParamAllowlist.contains(item.name) {
+                        if let v = item.value, !v.isEmpty { collected[item.name] = v }
+                    }
+                }
+            }
+            if trimmed.hasPrefix("{"), let nestedData = trimmed.data(using: .utf8),
+               let nested = try? JSONSerialization.jsonObject(with: nestedData) {
+                collectVerifyParams(nested, into: &collected)
+            }
+        }
+    }
+
+    /// passport lite 查询串（music-lib buildSodaPassportLiteQueryFor）：
+    /// send_code / validate_code / upsms/verify 专用，jssdk 5.1.2 lite。
+    private func passportLiteQueryItems() -> [URLQueryItem] {
+        let deviceID = QishuiMusicAuth.shared.passportDeviceID
+        let installID = QishuiMusicAuth.shared.passportInstallID
+        return [
+            URLQueryItem(name: "passport_jssdk_version", value: "5.1.2"),
+            URLQueryItem(name: "passport_jssdk_type", value: "lite"),
+            URLQueryItem(name: "is_from_ttaccountsdk", value: "1"),
+            URLQueryItem(name: "aid", value: "386088"),
+            URLQueryItem(name: "language", value: "zh"),
+            URLQueryItem(name: "account_app_language", value: "en-US"),
+            URLQueryItem(name: "new_authn_sdk_version", value: "1.0.0.404-web"),
+            URLQueryItem(name: "is_new_login", value: "1"),
+            URLQueryItem(name: "is_from_iesaccountsaas", value: "1"),
+            URLQueryItem(name: "device_id", value: deviceID),
+            URLQueryItem(name: "install_id", value: installID),
+            URLQueryItem(name: "did", value: deviceID),
+            URLQueryItem(name: "iid", value: installID),
+            URLQueryItem(name: "device_platform", value: "PC"),
+            URLQueryItem(name: "version_code", value: "3.3.0"),
+            URLQueryItem(name: "biz_trace_id", value: passportBizTraceID),
+        ]
+    }
+
+    /// 有序表单编码（music-lib sodaEncodeOrderedForm）：order 里的键先按序
+    /// 输出，其余键按字母序补齐。
+    static func orderedFormEncoded(_ pairs: [(String, String)], order: [String]) -> Data {
+        var dict: [String: String] = [:]
+        for (key, value) in pairs { dict[key] = value }
+        var emitted: [(String, String)] = []
+        var seen = Set<String>()
+        for key in order {
+            if let value = dict[key] {
+                emitted.append((key, value))
+                seen.insert(key)
+            }
+        }
+        for key in dict.keys.sorted() where !seen.contains(key) {
+            emitted.append((key, dict[key]!))
+        }
+        return formEncoded(emitted)
+    }
+
+    /// MFA 三个接口共用的 POST（music-lib postSodaPassportWithCookie）：
+    /// lite 查询串、Accept 与 verify-portrait 头按参考实现，响应 Cookie
+    /// 合并回该 token 的 Cookie 罐。
+    private func passportMFAPost(path: String, form: [(String, String)], order: [String], token: String) async throws -> [String: Any] {
+        guard var components = URLComponents(string: "https://api.qishui.com" + path) else {
+            throw QishuiAPIError.invalidURL
+        }
+        components.queryItems = passportLiteQueryItems()
+        guard let url = components.url else { throw QishuiAPIError.invalidURL }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        applyPassportHeaders(to: &request)
+        request.setValue("application/json, text/plain, */*", forHTTPHeaderField: "Accept")
+        if let flowID = form.first(where: { $0.0 == "std_verify_flow_id" })?.1, !flowID.isEmpty {
+            request.setValue(flowID, forHTTPHeaderField: "X-Tt-Passport-Verify-Portrait")
+        }
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        if let jar = qrCookieJar(for: token), !jar.isEmpty {
+            request.setValue(jar, forHTTPHeaderField: "Cookie")
+        }
+        request.httpBody = Self.orderedFormEncoded(form, order: order)
+        let (data, response) = try await directSession.data(for: request)
+        let stored = (HTTPCookieStorage.shared.cookies(for: url) ?? [])
+            .map { "\($0.name)=\($0.value)" }
+            .joined(separator: "; ")
+        let merged = Self.mergedCookieHeader([
+            qrCookieJar(for: token) ?? "",
+            Self.responseCookieHeader(response, for: url),
+            stored,
+        ])
+        updateQRCookeJar(for: token, header: merged.isEmpty ? nil : merged)
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw QishuiAPIError.invalidResponse
+        }
+        return root
+    }
+
+    private static func passportMessageOK(_ root: [String: Any]) -> Bool {
+        let message = (root["message"] as? String ?? "").trimmingCharacters(in: .whitespaces).lowercased()
+        return message.isEmpty || message == "success"
+    }
+
+    /// MFA 表单：基础字段 + 验证参数（applySodaVerifyParams 语义：验证参数
+    /// 后应用，可覆盖同名基础字段）。
+    private func mfaForm(challenge: QishuiMFAChallenge, base: [(String, String)]) -> [(String, String)] {
+        var pairs = base
+        for pair in challenge.verifyParams {
+            pairs.removeAll { $0.0 == pair.key }
+            pairs.append((pair.key, pair.value))
+        }
+        return pairs
+    }
+
+    /// POST /passport/web/send_code/：给绑定手机号发验证码。
+    /// 返回服务端回的手机号（打码）与重发间隔秒数。
+    func sendSMSCode(challenge: QishuiMFAChallenge) async throws -> (mobile: String, retryTime: Int) {
+        guard !challenge.encryptUID.isEmpty else {
+            throw QishuiAPIError.server("缺少短信验证参数，请刷新二维码重试")
+        }
+        let form = mfaForm(challenge: challenge, base: [
+            ("mix_mode", "1"),
+            ("type", "3737"),
+            ("encrypt_uid", challenge.encryptUID),
+            ("verify_ticket", ""),
+            ("copywriting_key", "qr_connect"),
+            ("ies_safety_diversion_tag", "mfa"),
+            ("new_verify_flow", ""),
+            ("std_verify_way", "mobile_sms_verify"),
+            ("is6Digits", "1"),
+            ("aid", "386088"),
+            ("new_authn_sdk_version", "1.0.0.404-web"),
+        ])
+        let root = try await passportMFAPost(
+            path: "/passport/web/send_code/",
+            form: form,
+            order: ["mix_mode", "type", "encrypt_uid", "verify_ticket", "copywriting_key", "ies_safety_diversion_tag", "new_verify_flow", "std_verify_flow_id", "std_verify_scene", "std_verify_template", "std_verify_token", "std_verify_type", "std_verify_way", "is6Digits", "aid", "new_authn_sdk_version"],
+            token: challenge.token
+        )
+        guard Self.passportMessageOK(root) else {
+            throw QishuiAPIError.server("验证码发送失败：\(root["message"] as? String ?? "未知错误")")
+        }
+        let payload = dictionary(root["data"]) ?? [:]
+        let mobile = firstString(payload, keys: ["mobile"]) ?? challenge.mobile
+        let retry = Int(number(payload["retry_time"]))
+        BeansLogger.shared.log("[QishuiQR] sms code sent retry=\(retry)", level: .info)
+        return (mobile, retry)
+    }
+
+    /// POST /passport/web/validate_code/：提交验证码（code 按参考实现做
+    /// UTF-8 hex 编码），通过后带验证参数再查一次 check_qrconnect 拿会话。
+    func validateSMSCode(challenge: QishuiMFAChallenge, code: String, session: QishuiQRCodeSession) async throws -> QishuiQRCodeStatus {
+        guard !challenge.encryptUID.isEmpty else {
+            return .failed("缺少短信验证参数，请刷新二维码重试")
+        }
+        let hexCode = code.trimmingCharacters(in: .whitespaces).utf8.map { String(format: "%02x", $0) }.joined()
+        let form = mfaForm(challenge: challenge, base: [
+            ("mix_mode", "1"),
+            ("type", "3737"),
+            ("encrypt_uid", challenge.encryptUID),
+            ("verify_ticket", ""),
+            ("copywriting_key", "qr_connect"),
+            ("ies_safety_diversion_tag", "mfa"),
+            ("new_verify_flow", ""),
+            ("std_verify_way", "mobile_sms_verify"),
+            ("code", hexCode),
+            ("aid", "386088"),
+            ("new_authn_sdk_version", "1.0.0.404-web"),
+        ])
+        let root = try await passportMFAPost(
+            path: "/passport/web/validate_code/",
+            form: form,
+            order: ["mix_mode", "type", "encrypt_uid", "verify_ticket", "copywriting_key", "ies_safety_diversion_tag", "mfa", "new_verify_flow", "std_verify_flow_id", "std_verify_scene", "std_verify_template", "std_verify_token", "std_verify_type", "std_verify_way", "code", "aid", "new_authn_sdk_version"],
+            token: challenge.token
+        )
+        let payload = dictionary(root["data"]) ?? [:]
+        let ticket = firstString(payload, keys: ["ticket"]) ?? ""
+        guard !ticket.isEmpty || Self.passportMessageOK(root) else {
+            return .failed("验证码错误：\(root["message"] as? String ?? "未知错误")")
+        }
+        let final = try await checkQRCode(session: session, verifyChallenge: challenge)
+        if case .success = final { return final }
+        if case .failed(let message) = final { return .failed(message) }
+        return .failed("验证码已通过，但汽水未下发登录 Cookie，请重试")
+    }
+
+    /// POST /passport/upsms/verify/：上行短信发出后确认，随后带验证参数
+    /// 再查一次 check_qrconnect 拿会话。std_verify_way 在参考实现里是
+    /// 验证参数应用之后才设为 mobile_up_sms_verify（覆盖语义）。
+    func verifyUpSMS(challenge: QishuiMFAChallenge, session: QishuiQRCodeSession) async throws -> QishuiQRCodeStatus {
+        guard !challenge.encryptUID.isEmpty else {
+            return .failed("缺少短信验证参数，请刷新二维码重试")
+        }
+        var form = mfaForm(challenge: challenge, base: [
+            ("encrypt_uid", challenge.encryptUID),
+            ("verify_ticket", ""),
+            ("copywriting_key", "qr_connect"),
+            ("ies_safety_diversion_tag", "mfa"),
+            ("new_verify_flow", ""),
+            ("aid", "386088"),
+            ("new_authn_sdk_version", "1.0.0.404-web"),
+        ])
+        form.removeAll { $0.0 == "std_verify_way" }
+        form.append(("std_verify_way", "mobile_up_sms_verify"))
+        let root = try await passportMFAPost(
+            path: "/passport/upsms/verify/",
+            form: form,
+            order: ["encrypt_uid", "verify_ticket", "copywriting_key", "ies_safety_diversion_tag", "new_verify_flow", "std_verify_flow_id", "std_verify_scene", "std_verify_template", "std_verify_token", "std_verify_type", "std_verify_way", "aid", "new_authn_sdk_version"],
+            token: challenge.token
+        )
+        let payload = dictionary(root["data"]) ?? [:]
+        let registered = (payload["registered"] as? Bool) ?? false
+        let ticket = firstString(payload, keys: ["ticket"]) ?? ""
+        guard (registered || !ticket.isEmpty), Self.passportMessageOK(root) else {
+            return .failed("上行短信确认失败：\(root["message"] as? String ?? "未知错误")")
+        }
+        let final = try await checkQRCode(session: session, verifyChallenge: challenge)
+        if case .success = final { return final }
+        if case .failed(let message) = final { return .failed(message) }
+        return .failed("上行短信已确认，但汽水未下发登录 Cookie，请重试")
     }
 
     /// 字节系会话 Cookie 名（music-lib sodaCookiesHaveSession 的判据集合）：
