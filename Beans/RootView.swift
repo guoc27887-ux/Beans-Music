@@ -637,7 +637,7 @@ struct RootView: View {
 
     @ViewBuilder
     private var platformSelectionMenu: some View {
-        let providers = platformPrefs.enabledSearchProviders.filter { $0 != .qishui }
+        let providers = platformPrefs.enabledSearchProviders
         let saved = SearchProvider(rawValue: homeSourceRaw)
         let current = saved.flatMap { providers.contains($0) ? $0 : nil } ?? providers.first ?? .netease
         Text("主页平台")

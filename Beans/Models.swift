@@ -647,6 +647,18 @@ struct TopList: Identifiable, Hashable, Codable {
     }
 }
 
+/// 汽水官方榜单项。榜单 ID 是 19 位数字字符串，放不进 TopList 的 Int 主键，
+/// 单独建型；榜单目录是官方固定四榜（music-lib sodaTopListDefinitions），
+/// 不依赖网络，歌曲走 /luna/pc/charts/<id>，失败回退歌单详情。
+struct QishuiChartInfo: Identifiable, Hashable, Codable {
+    let id: String
+    let name: String
+    let coverURL: URL?
+    let updateFrequency: String
+    let trackCount: Int?
+    let chartDescription: String?
+}
+
 /// QQ 峰尖榜总览项
 struct QQTopInfo: Identifiable, Hashable, Codable {
     let id: Int

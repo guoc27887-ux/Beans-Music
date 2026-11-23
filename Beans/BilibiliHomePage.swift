@@ -34,7 +34,7 @@ struct BilibiliHomePage: View {
                 if value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !submittedQuery.isEmpty { submittedQuery = ""; if channel != .live { Task { await feed.select(channel: channel, query: "") } } }
             }
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) { Menu { ForEach(platforms.enabledSearchProviders.filter { $0 != .qishui }) { provider in Button(provider.rawValue) { source = provider.rawValue } } } label: { Image("BrandBilibili").resizable().scaledToFit().frame(width: 28, height: 28) }.accessibilityLabel("切换主页平台") }
+                ToolbarItem(placement: .navigationBarLeading) { Menu { ForEach(platforms.enabledSearchProviders) { provider in Button(provider.rawValue) { source = provider.rawValue } } } label: { Image("BrandBilibili").resizable().scaledToFit().frame(width: 28, height: 28) }.accessibilityLabel("切换主页平台") }
                 ToolbarItem(placement: .navigationBarTrailing) { BilibiliAccountShortcutButton { navigation.push(.account) } }
             }
             .beansHomeNavigationBarTransparent()

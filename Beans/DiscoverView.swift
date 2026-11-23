@@ -9,6 +9,7 @@ private enum DiscoverRoute: Hashable {
     case artist(Artist)
     case qqTopList(QQTopInfo)
     case kugouTopList(KugouTopInfo)
+    case qishuiTopList(QishuiChartInfo)
     case dailySongs([Song])
 }
 
@@ -85,7 +86,7 @@ struct DiscoverView: View {
     @AppStorage("beans.remoteAnnouncement.updatedAt") private var remoteAnnouncementUpdatedAt = ""
     @AppStorage("beans.remoteAnnouncement.homeBannerDismissedKey") private var remoteAnnouncementBannerDismissedKey = ""
     @AppStorage("beans.showSongVIPBadge") private var showSongVIPBadge = true
-    private var homeProviders: [SearchProvider] { platformPrefs.enabledSearchProviders.filter { $0 != .qishui } }
+    private var homeProviders: [SearchProvider] { platformPrefs.enabledSearchProviders }
     /// 首页数据源：网易云 / QQ音乐（与搜索页同一控件样式）
     private var source: SearchProvider {
         guard let saved = SearchProvider(rawValue: homeSourceRaw), homeProviders.contains(saved) else {
@@ -97,6 +98,7 @@ struct DiscoverView: View {
 
     @State private var qqTopLists: [QQTopInfo] = []
     @State private var kugouTopLists: [KugouTopInfo] = []
+    @State private var qishuiTopLists: [QishuiChartInfo] = []
     /// 排行榜展开状态：收起显示前 3，展开显示前 10
     @State private var ranksExpanded = false
     /// 歌单广场展开状态：收起显示前 6，展开显示全部
@@ -334,6 +336,10 @@ struct DiscoverView: View {
                 .environmentObject(auth)
         case .kugouTopList(let info):
             KugouTopListDetailView(topList: info)
+                .environmentObject(player)
+                .environmentObject(auth)
+        case .qishuiTopList(let info):
+            QishuiChartDetailView(chart: info)
                 .environmentObject(player)
                 .environmentObject(auth)
         case .dailySongs(let songs):
@@ -870,7 +876,7 @@ struct DiscoverView: View {
         case .netease: return neteaseTopLists.count
         case .qq: return qqTopLists.count
         case .kugou: return kugouTopLists.count
-        case .qishui: return 0
+        case .qishui: return qishuiTopLists.count
         case .bilibili: return 0
         }
     }
@@ -885,7 +891,7 @@ struct DiscoverView: View {
         case .netease: return !topLists.isEmpty
         case .qq: return !qqTopLists.isEmpty
         case .kugou: return !kugouTopLists.isEmpty
-        case .qishui: return false
+        case .qishui: return !qishuiTopLists.isEmpty
         case .bilibili: return false
         }
     }
@@ -1015,6 +1021,14 @@ struct DiscoverView: View {
                 rankRow(index: index, name: beansChartName(info.name), subtitle: beansChartSubtitle(info.updateFrequency), coverURL: info.coverURL) {
                     BeansHaptics.tap()
                     openRoute(DiscoverRoute.kugouTopList(info))
+                }
+                Divider().overlay(Color.beansComment.opacity(0.12))
+            }
+        } else if source == .qishui {
+            ForEach(Array(qishuiTopLists.prefix(displayedRankCount).enumerated()), id: \.element.id) { index, info in
+                rankRow(index: index, name: beansChartName(info.name), subtitle: beansChartSubtitle(info.updateFrequency), coverURL: info.coverURL) {
+                    BeansHaptics.tap()
+                    openRoute(DiscoverRoute.qishuiTopList(info))
                 }
                 Divider().overlay(Color.beansComment.opacity(0.12))
             }
@@ -2103,8 +2117,10 @@ struct DiscoverView: View {
         case .qishui:
             // 每日推荐走直连 feed/song-tab（登录后带 Cookie，匿名先直连试），
             // 推荐歌单走直连 discover/mix；都取不到时保持空，不打断首页。
+            // 排行榜目录是官方固定四榜，不发请求，点开才拉歌曲。
             snapshot.dailySongs = await QishuiAPI.shared.dailySongs(limit: 30)
             snapshot.personalized = (try? await QishuiAPI.shared.recommendedPlaylists(limit: 18)) ?? []
+            snapshot.qishuiTopLists = QishuiAPI.builtinCharts
         case .bilibili:
             // Bilibili has its own native browse surface. Keep its videos out
             // of the generic music精选 page.
@@ -2130,6 +2146,7 @@ struct DiscoverView: View {
         personalized = snapshot.personalized
         qqTopLists = snapshot.qqTopLists
         kugouTopLists = snapshot.kugouTopLists
+        qishuiTopLists = snapshot.qishuiTopLists
         CoverImagePrefetcher.shared.prefetch(snapshot: snapshot)
     }
 
@@ -2137,6 +2154,7 @@ struct DiscoverView: View {
         !dailySongs.isEmpty || !newAlbums.isEmpty || !topArtists.isEmpty
             || !topLists.isEmpty || !personalized.isEmpty
             || !qqTopLists.isEmpty || !kugouTopLists.isEmpty
+            || !qishuiTopLists.isEmpty
     }
 }
 
@@ -2870,6 +2888,136 @@ struct TopListDetailView: View {
                     "网易云排行榜详情后台刷新失败，继续使用缓存 id=\(topList.id) error=\(error.localizedDescription)",
                     level: .warn
                 )
+            }
+            loading = false
+        }
+    }
+}
+
+// MARK: - 汽水排行榜详情
+
+struct QishuiChartDetailView: View {
+    @EnvironmentObject private var player: PlayerManager
+    @EnvironmentObject private var theme: ThemeStore
+
+    let chart: QishuiChartInfo
+    @State private var tracks: [Song] = []
+    @State private var loading = true
+    @State private var errorMessage: String?
+    @State private var searchText = ""
+    @State private var showBatchDownload = false
+    @AppStorage(BeansBackendSettings.downloadUnlockKey) private var downloadFeatureUnlocked = false
+
+    init(chart: QishuiChartInfo) {
+        self.chart = chart
+        let cached = DetailSongsCache.shared.cachedSongs(for: "qishui-top-\(chart.id)")
+        _tracks = State(initialValue: cached?.songs ?? [])
+        _loading = State(initialValue: cached?.songs.isEmpty ?? true)
+    }
+
+    var body: some View {
+        let _ = theme.accent
+        ZStack {
+            GlassBackdrop(customColor: theme.backgroundSyncAll ? theme.customBackground : nil)
+            Group {
+                if loading {
+                    BeansDetailSongsLoadingState(coverSize: 88, rowCount: 10, showsRank: false)
+                } else if let errorMessage {
+                    ErrorStateView(message: errorMessage) {
+                        Task { await load() }
+                    }
+                } else {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 0) {
+                            header
+                            ForEach(Array(filteredTracks.enumerated()), id: \.element.identityKey) { index, song in
+                                SongCell(
+                                    song: song,
+                                    showCover: true,
+                                    suppressNativeCleanRowGlass: true,
+                                    coverSize: 46,
+                                    fixedRowHeight: 64,
+                                    playbackContext: filteredTracks,
+                                    playbackIndex: index
+                                ) {
+                                    player.play(songs: filteredTracks, startAt: index)
+                                }
+                                .padding(.horizontal, beansDetailContentInset)
+                            }
+                        }
+                        .padding(.top, 12)
+                        .padding(.bottom, 118)
+                    }
+                    .beansScrollIndicatorsHidden()
+                }
+            }
+        }
+        .navigationTitle(beansChartName(chart.name))
+        .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: beansLocalized("搜索榜单歌曲", "Search chart songs"))
+        .beansDetailProfileToolbar()
+        .task { await load() }
+        .sheet(isPresented: $showBatchDownload) {
+            BatchDownloadSheet(songs: filteredTracks, title: "下载排行榜")
+                .environmentObject(theme)
+        }
+    }
+
+    private var header: some View {
+        ChartDetailHeader(
+            title: chart.name,
+            provider: .qishui,
+            coverURL: chart.coverURL,
+            trackCount: chart.trackCount ?? tracks.count,
+            playCount: nil,
+            chartDescription: chart.chartDescription,
+            filteredCount: filteredTracks.count,
+            downloadEnabled: downloadFeatureUnlocked,
+            onPlay: {
+                BeansHaptics.tap()
+                player.play(songs: filteredTracks, startAt: 0)
+            }, onDownload: {
+                BeansHaptics.tap()
+                showBatchDownload = true
+            }
+        )
+    }
+
+    private var filteredTracks: [Song] {
+        let kw = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !kw.isEmpty else { return tracks }
+        return tracks.filter { song in
+            song.name.lowercased().contains(kw)
+                || song.artists.lowercased().contains(kw)
+                || song.album.lowercased().contains(kw)
+        }
+    }
+
+    @MainActor
+    private func load() async {
+        let cache = DetailSongsCache.shared
+        let cacheKey = "qishui-top-\(chart.id)"
+        if let cached = cache.cachedSongs(for: cacheKey) {
+            tracks = cached.songs
+            loading = false
+            errorMessage = nil
+            if cache.isFresh(cached), !BeansNetworkStatus.shared.isReachable {
+                return
+            }
+        } else {
+            loading = true
+            errorMessage = nil
+        }
+        do {
+            let songs = try await QishuiAPI.shared.chartSongs(id: chart.id)
+            if !songs.isEmpty {
+                tracks = songs
+                cache.save(songs, for: cacheKey)
+            }
+            loading = false
+        } catch {
+            if tracks.isEmpty {
+                errorMessage = error.localizedDescription
             }
             loading = false
         }

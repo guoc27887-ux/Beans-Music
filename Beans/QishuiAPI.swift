@@ -425,6 +425,68 @@ final class QishuiAPI: ObservableObject {
         }
     }
 
+    /// 汽水官方榜单目录（固定四榜，不依赖网络；music-lib
+    /// sodaTopListDefinitions 同源数据）。
+    static let builtinCharts: [QishuiChartInfo] = [
+        QishuiChartInfo(
+            id: "7036274230471712007",
+            name: "热歌榜",
+            coverURL: URL(string: "https://p3-luna.douyinpic.com/img/tos-cn-i-b829550vbb/d0d8d48461a62748e84689cdf049b19a.png~tplv-b829550vbb-resize:960:960.png"),
+            updateFrequency: "每周四更新",
+            trackCount: 50,
+            chartDescription: "汽水音乐内每周热度最高的50首歌，每周四更新"
+        ),
+        QishuiChartInfo(
+            id: "7060812597884869927",
+            name: "新歌榜",
+            coverURL: URL(string: "https://p3-luna.douyinpic.com/img/tos-cn-i-b829550vbb/f12f7eb5b54d0899c7c724df009668a8.png~tplv-b829550vbb-resize:960:960.png"),
+            updateFrequency: "每周四更新",
+            trackCount: 50,
+            chartDescription: "近期发行的热度最高的50首新歌，每周四更新"
+        ),
+        QishuiChartInfo(
+            id: "7061475546400005410",
+            name: "欧美榜",
+            coverURL: URL(string: "https://p3-luna.douyinpic.com/img/tos-cn-i-b829550vbb/33747550ed5499b58feda42a21748637.png~tplv-b829550vbb-resize:960:960.png"),
+            updateFrequency: "每周四更新",
+            trackCount: 50,
+            chartDescription: "汽水音乐内每周热度最高的50首外文歌曲，每周四更新"
+        ),
+        QishuiChartInfo(
+            id: "7415959718721494311",
+            name: "音乐人歌曲榜",
+            coverURL: URL(string: "https://p3-luna.douyinpic.com/img/tos-cn-v-2774c002/o8FQKiQQBxHWa2hzsBNAgYOX6iEHEAibADAbfB~tplv-b829550vbb-resize:960:960.png"),
+            updateFrequency: "每周四更新",
+            trackCount: 25,
+            chartDescription: "抖音音乐人开放平台上传歌曲，综合每周站内热度进行排序展示"
+        ),
+    ]
+
+    /// 榜单歌曲：官方榜单走 /luna/pc/charts/<id>，失败或为空回退歌单详情
+    /// （music-lib fetchTopListSongs 同款双链路）。
+    func chartSongs(id: String) async throws -> [Song] {
+        if let songs = try? await directChartSongs(id: id), !songs.isEmpty {
+            return songs
+        }
+        let details = try await playlistDetails(id: id)
+        return details.songs
+    }
+
+    private func directChartSongs(id: String) async throws -> [Song] {
+        let root = try await directRequestObject(
+            path: "luna/pc/charts/\(id)",
+            queryItems: directAppItems(extra: []),
+            lunaPCHeaders: true,
+            includeAuthCookie: true
+        )
+        guard let chart = dictionary(root["chart"]) else {
+            throw QishuiAPIError.invalidResponse
+        }
+        return dictionaryArray(chart["track_ranks"]).compactMap {
+            makeSong(normalizedPCEntity($0))
+        }
+    }
+
     func playlistDetails(
         id: String,
         count: Int = 1000,
@@ -1621,7 +1683,8 @@ extension QishuiAPI {
     /// passport biz_trace_id：进程内生成一次后保持不变（music-lib
     /// sodaPassportBizTraceID，8 位十六进制），同时用作请求头
     /// X-Tt-Passport-Trace-Id。
-    private lazy var passportBizTraceID: String = String(format: "%08x", UInt32.random(in: 0...UInt32.max))
+    private static let passportBizTraceIDStorage: String = String(format: "%08x", UInt32.random(in: 0...UInt32.max))
+    private var passportBizTraceID: String { Self.passportBizTraceIDStorage }
 
     /// passport 公共参数：逐项对齐 music-lib buildSodaPassportNormalValues
     /// （base values + account_sdk_source/p_js_*/p_zt/p_ver/request_host/p_bd）。

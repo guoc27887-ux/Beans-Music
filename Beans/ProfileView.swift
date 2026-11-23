@@ -207,7 +207,7 @@ struct ProfileView: View {
     private var isEnglish: Bool { languageRaw == AppLanguage.english.rawValue }
 
     private var displayPlatformSummary: String {
-        let providers = platformPrefs.enabledSearchProviders.filter { $0 != .qishui }
+        let providers = platformPrefs.enabledSearchProviders
         if !isEnglish { return providers.map(\.rawValue).joined(separator: " / ") }
         return providers.map { provider in
             switch provider {
