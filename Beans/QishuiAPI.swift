@@ -1690,6 +1690,13 @@ extension QishuiAPI {
     private static let passportBizTraceIDStorage: String = String(format: "%08x", UInt32.random(in: 0...UInt32.max))
     private var passportBizTraceID: String { Self.passportBizTraceIDStorage }
 
+    /// check_qrconnect 轮询闸门（按 token）：error_code 7 是服务端限频，
+    /// music-lib 的对策是命中 7 后 60 秒内不再打上游（sodaQRRateLimitBackoff），
+    /// 只回缓存状态。2.0.13 及以前每 2.5 秒硬轮询，扫码后触发 7 并持续
+    /// 把冷却顶回去，会话 Cookie 永远下不来（2026-11-23 真机日志实证：
+    /// new → scanned → 之后每轮 err=7、status 为空、无会话 Cookie）。
+    private static var qrPollGates: [String: (backoffUntil: Date, sawScanned: Bool)] = [:]
+
     /// passport 公共参数：逐项对齐 music-lib buildSodaPassportNormalValues
     /// （base values + account_sdk_source/p_js_*/p_zt/p_ver/request_host/p_bd）。
     /// 早期版本只带了 qishui-api 的最小参数集，真机表现是能出码、能扫、
@@ -1810,6 +1817,10 @@ extension QishuiAPI {
     /// error_code 2046 / account_flow=verify = 需要短信验证（本版不支持）。
     /// 成功判据：合并 Cookie 里出现 sessionid。
     func checkQRCode(session: QishuiQRCodeSession) async throws -> QishuiQRCodeStatus {
+        // 限频冷却中：不打上游，直接回缓存状态（music-lib sodaThrottledResult）。
+        if let gate = Self.qrPollGates[session.token], Date() < gate.backoffUntil {
+            return gate.sawScanned ? .scanned : .waiting
+        }
         guard var components = URLComponents(string: "https://api.qishui.com/passport/web/check_qrconnect/") else {
             throw QishuiAPIError.invalidURL
         }
@@ -1873,16 +1884,25 @@ extension QishuiAPI {
         )
         if Self.hasSessionCookie(merged) {
             updateQRCookeJar(for: session.token, header: nil)
+            Self.qrPollGates.removeValue(forKey: session.token)
             return .success(cookie: merged)
         }
         let status = (firstString(payload, keys: ["status"]) ?? "").lowercased()
         let errorCode = Int(number(payload["error_code"]))
         let accountFlow = (firstString(payload, keys: ["account_flow"]) ?? "").lowercased()
+        let sawScanned = (Self.qrPollGates[session.token]?.sawScanned ?? false) || status == "scanned" || status == "confirmed"
         if accountFlow == "verify" || errorCode == 2046 {
             return .verifyRequired
         }
         if errorCode == 7 {
-            return .waiting
+            // 命中限频：退避 60 秒（music-lib sodaQRRateLimitBackoff），
+            // 期间入口闸门直接回缓存状态，不再打上游把冷却顶回去。
+            Self.qrPollGates[session.token] = (backoffUntil: Date().addingTimeInterval(60), sawScanned: sawScanned)
+            BeansLogger.shared.log("[QishuiQR] rate limited, backoff 60s sawScanned=\(sawScanned)", level: .info)
+            return sawScanned ? .scanned : .waiting
+        }
+        if sawScanned {
+            Self.qrPollGates[session.token] = (backoffUntil: .distantPast, sawScanned: true)
         }
         switch status {
         case "scanned", "confirmed":

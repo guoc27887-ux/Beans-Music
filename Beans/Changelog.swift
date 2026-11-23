@@ -77,6 +77,15 @@ enum ChangelogStore {
     /// 否则更新说明弹窗在远端拉取失败时展示的仍是旧版本条目（logs.first）。
     static let logs: [VersionLog] = [
         VersionLog(
+            id: "2.0.14",
+            version: "2.0.14",
+            title: "汽水登录限频退避",
+            features: [],
+            fixes: [
+                "汽水扫码确认后登录不落地：轮询撞上服务端限频（error_code 7）后改为退避 60 秒再查，不再每 2.5 秒硬打把冷却顶回去（依据真机诊断日志定位）"
+            ]
+        ),
+        VersionLog(
             id: "2.0.13",
             version: "2.0.13",
             title: "汽水主页排行榜补齐与登录诊断",
