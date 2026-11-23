@@ -33,9 +33,10 @@ final class QishuiMusicAuth: ObservableObject {
         if let deviceID = store["passportDeviceID"], let installID = store["passportInstallID"] {
             return (deviceID, installID)
         }
+        // 与 music-lib sodaStableDeviceID 对齐：纯毫秒时间戳，install 取 +1。
         let seed = Int64(Date().timeIntervalSince1970 * 1000)
-        let deviceID = "\(seed)\(Int.random(in: 100...999))"
-        let installID = "\(seed + 1)\(Int.random(in: 100...999))"
+        let deviceID = "\(seed)"
+        let installID = "\(seed + 1)"
         var next = store
         next["passportDeviceID"] = deviceID
         next["passportInstallID"] = installID

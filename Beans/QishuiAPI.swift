@@ -1618,22 +1618,59 @@ extension QishuiAPI {
 
     // MARK: 扫码登录（passport）
 
-    /// passport 公共参数（qishui-api PASSPORT_FIXED + music-lib base values）。
+    /// passport biz_trace_id：进程内生成一次后保持不变（music-lib
+    /// sodaPassportBizTraceID，8 位十六进制），同时用作请求头
+    /// X-Tt-Passport-Trace-Id。
+    private lazy var passportBizTraceID: String = String(format: "%08x", UInt32.random(in: 0...UInt32.max))
+
+    /// passport 公共参数：逐项对齐 music-lib buildSodaPassportNormalValues
+    /// （base values + account_sdk_source/p_js_*/p_zt/p_ver/request_host/p_bd）。
+    /// 早期版本只带了 qishui-api 的最小参数集，真机表现是能出码、能扫、
+    /// 能确认，但服务端始终不下发会话 Cookie；参数面补齐到官方网页端
+    /// SDK 的完整形态后再验。
     private func passportQueryItems(extra: [URLQueryItem] = []) -> [URLQueryItem] {
+        let deviceID = QishuiMusicAuth.shared.passportDeviceID
+        let installID = QishuiMusicAuth.shared.passportInstallID
         var items = [
             URLQueryItem(name: "passport_jssdk_version", value: "2.4.13"),
             URLQueryItem(name: "passport_jssdk_type", value: "normal"),
             URLQueryItem(name: "is_from_ttaccountsdk", value: "1"),
             URLQueryItem(name: "aid", value: "386088"),
             URLQueryItem(name: "language", value: "zh"),
+            URLQueryItem(name: "account_sdk_source", value: "web"),
+            URLQueryItem(name: "p_js_v", value: "2.4.13"),
+            URLQueryItem(name: "p_js_t", value: "pro"),
+            URLQueryItem(name: "p_zt", value: "3.3.5"),
+            URLQueryItem(name: "p_ver", value: "1.0.29"),
+            URLQueryItem(name: "request_host", value: "app://resources"),
+            URLQueryItem(name: "p_bd", value: "1.0.0.41"),
+            URLQueryItem(name: "biz_trace_id", value: passportBizTraceID),
             URLQueryItem(name: "is_new_login", value: "1"),
-            URLQueryItem(name: "device_id", value: QishuiMusicAuth.shared.passportDeviceID),
-            URLQueryItem(name: "iid", value: QishuiMusicAuth.shared.passportInstallID),
+            URLQueryItem(name: "is_from_iesaccountsaas", value: "1"),
+            URLQueryItem(name: "device_id", value: deviceID),
+            URLQueryItem(name: "install_id", value: installID),
+            URLQueryItem(name: "did", value: deviceID),
+            URLQueryItem(name: "iid", value: installID),
             URLQueryItem(name: "device_platform", value: "PC"),
-            URLQueryItem(name: "version_code", value: "30020100"),
+            URLQueryItem(name: "version_code", value: "3.3.0"),
         ]
         items.append(contentsOf: extra)
         return items
+    }
+
+    /// passport POST 要求携带的请求头（music-lib postSodaPassportWithCookie：
+    /// sec-ch-ua 三件套 + bd-ticket-guard 四件套 + trace id）。
+    private func applyPassportHeaders(to request: inout URLRequest) {
+        request.setValue(Self.passportUserAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue("application/json, text/javascript", forHTTPHeaderField: "Accept")
+        request.setValue("\"Not.A/Brand\";v=\"99\", \"Chromium\";v=\"136\"", forHTTPHeaderField: "sec-ch-ua")
+        request.setValue("?0", forHTTPHeaderField: "sec-ch-ua-mobile")
+        request.setValue("\"Windows\"", forHTTPHeaderField: "sec-ch-ua-platform")
+        request.setValue("2", forHTTPHeaderField: "bd-ticket-guard-version")
+        request.setValue("2", forHTTPHeaderField: "bd-ticket-guard-iteration-version")
+        request.setValue("BAnIxKL96Jby5x+Um9i7HZ2c8O6lfZJRxm6yk73Mqcr06l2qIw2iqu2Mtm3U/6OI98usukA9dqxUlsctVWK9rKA=", forHTTPHeaderField: "bd-ticket-guard-ree-public-key")
+        request.setValue("0", forHTTPHeaderField: "bd-ticket-guard-server-cert-sn")
+        request.setValue(passportBizTraceID, forHTTPHeaderField: "X-Tt-Passport-Trace-Id")
     }
 
     /// GET /passport/web/get_qrcode/：拿 token 与二维码内容（data.qrcode，
@@ -1647,12 +1684,12 @@ extension QishuiAPI {
             URLQueryItem(name: "next", value: "https://api.qishui.com"),
             URLQueryItem(name: "need_logo", value: "false"),
             URLQueryItem(name: "need_short_url", value: "false"),
+            URLQueryItem(name: "is_frontier", value: "true"),
         ])
         guard let url = components.url else { throw QishuiAPIError.invalidURL }
         var request = URLRequest(url: url)
         request.setValue(Self.passportUserAgent, forHTTPHeaderField: "User-Agent")
         request.setValue("application/json, text/javascript", forHTTPHeaderField: "Accept")
-        request.setValue("https://api.qishui.com/", forHTTPHeaderField: "Referer")
         let (data, response) = try await directSession.data(for: request)
         guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw QishuiAPIError.invalidResponse
@@ -1700,20 +1737,20 @@ extension QishuiAPI {
         guard let url = components.url else { throw QishuiAPIError.invalidURL }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue(Self.passportUserAgent, forHTTPHeaderField: "User-Agent")
-        request.setValue("https://api.qishui.com/", forHTTPHeaderField: "Referer")
+        applyPassportHeaders(to: &request)
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         let jarCookie = qrCookieJar(for: session.token) ?? session.cookieHeader
         if !jarCookie.isEmpty {
             request.setValue(jarCookie, forHTTPHeaderField: "Cookie")
         }
+        // 表单字段顺序对齐 music-lib sodaEncodePassportForm 的 check 顺序。
         request.httpBody = Self.formEncoded([
-            ("token", session.token),
-            ("next", "https://api.qishui.com"),
             ("need_logo", "false"),
             ("need_short_url", "false"),
             ("is_frontier", "true"),
+            ("token", session.token),
             ("is_new_login", "1"),
+            ("next", "https://api.qishui.com"),
         ])
         let (data, response) = try await directSession.data(for: request)
         guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
