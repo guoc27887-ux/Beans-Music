@@ -77,6 +77,16 @@ enum ChangelogStore {
     /// 否则更新说明弹窗在远端拉取失败时展示的仍是旧版本条目（logs.first）。
     static let logs: [VersionLog] = [
         VersionLog(
+            id: "2.0.18",
+            version: "2.0.18",
+            title: "汽水扫码放行等待",
+            features: [],
+            fixes: [
+                "移除「官方网页登录」（汽水没有浏览器登录页：官网只有下载页，授权链接浏览器打开是 404）",
+                "扫码确认后改为耐心等待服务端放行：每分钟只查一次、最长等 15 分钟，不再密集轮询撞限频"
+            ]
+        ),
+        VersionLog(
             id: "2.0.17",
             version: "2.0.17",
             title: "汽水网页登录修正",

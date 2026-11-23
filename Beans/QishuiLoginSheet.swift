@@ -18,7 +18,12 @@ struct QishuiLoginSheet: View {
     @State private var mfaRetrySeconds = 0
     @State private var mfaBusy = false
     @State private var mfaError: String?
-    @State private var showWebLogin = false
+    // 放行等待：扫码确认后 check_qrconnect 会被服务端限频数分钟（实证），
+    // 密集轮询只会一直撞 7。进入 scanned 满 30 秒后转入稀疏重试：
+    // 每 60 秒只查一次，最长等 15 分钟，期间提示用户保持页面打开。
+    @State private var scannedSince: Date?
+    @State private var releaseWait = false
+    @State private var releaseMinutes = 0
 
     var body: some View {
         let _ = theme.accent
@@ -51,18 +56,20 @@ struct QishuiLoginSheet: View {
 
                     statusView
 
-                    Button {
-                        showWebLogin = true
-                    } label: {
-                        Label("扫码登不上？用官方网页登录", systemImage: "globe")
-                            .font(BeansFont.appFont(13, .semibold))
-                            .foregroundStyle(Color.beansSage)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 9)
-                            .background { BeansSurface(shape: Capsule()) }
-                            .clipShape(Capsule())
+                    if releaseWait {
+                        Button {
+                            manualRetry()
+                        } label: {
+                            Label("立即重试一次", systemImage: "arrow.clockwise")
+                                .font(BeansFont.appFont(13, .semibold))
+                                .foregroundStyle(Color.beansSage)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 9)
+                                .background { BeansSurface(shape: Capsule()) }
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(GlassPressButtonStyle(scale: 0.96))
                     }
-                    .buttonStyle(GlassPressButtonStyle(scale: 0.96))
                 }
 
                 Spacer()
@@ -71,14 +78,6 @@ struct QishuiLoginSheet: View {
         }
         .onAppear { startLogin() }
         .onDisappear { timer?.invalidate() }
-        .sheet(isPresented: $showWebLogin) {
-            QishuiWebLoginPanel {
-                timer?.invalidate()
-                timer = nil
-                status = .success
-                dismiss()
-            }
-        }
     }
 
     @ViewBuilder
@@ -132,9 +131,16 @@ struct QishuiLoginSheet: View {
                     .font(BeansFont.appFont(13))
                     .foregroundStyle(Color.beansComment)
             case .scanned:
-                Label("已扫码，请在手机上确认登录", systemImage: "checkmark.circle")
-                    .font(BeansFont.appFont(13))
-                    .foregroundStyle(Color.beansSage)
+                if releaseWait {
+                    Text("已扫码。若已在手机上点了确认，服务端需要几分钟放行登录，保持这个页面打开就行（已等待约 \(releaseMinutes) 分钟）")
+                        .font(BeansFont.appFont(13))
+                        .foregroundStyle(Color.beansSage)
+                        .multilineTextAlignment(.center)
+                } else {
+                    Label("已扫码，请在手机上确认登录", systemImage: "checkmark.circle")
+                        .font(BeansFont.appFont(13))
+                        .foregroundStyle(Color.beansSage)
+                }
             case .success:
                 Label("登录成功，正在同步歌单…", systemImage: "checkmark.seal.fill")
                     .font(BeansFont.appFont(13))
@@ -150,7 +156,7 @@ struct QishuiLoginSheet: View {
                     .multilineTextAlignment(.center)
             }
         }
-        .frame(height: 44)
+        .frame(minHeight: 44)
     }
 
     private var isError: Bool {
@@ -170,6 +176,9 @@ struct QishuiLoginSheet: View {
         timer = nil
         session = nil
         status = .loading
+        scannedSince = nil
+        releaseWait = false
+        releaseMinutes = 0
         Task {
             do {
                 let created = try await QishuiAPI.shared.createQRCode()
@@ -209,6 +218,13 @@ struct QishuiLoginSheet: View {
             break
         case .scanned:
             status = .scanned
+            if scannedSince == nil {
+                scannedSince = Date()
+            }
+            if !releaseWait, let since = scannedSince,
+               Date().timeIntervalSince(since) > 30 {
+                enterReleaseWait()
+            }
         case .expired:
             timer?.invalidate()
             timer = nil
@@ -232,6 +248,38 @@ struct QishuiLoginSheet: View {
             timer?.invalidate()
             timer = nil
             completeLogin(cookie: cookie)
+        }
+    }
+
+    /// 转入放行等待：停掉 2.5 秒密集轮询，改为每 60 秒查一次，
+    /// 最长 15 分钟；超时给出明确提示，二维码可刷新重来。
+    private func enterReleaseWait() {
+        releaseWait = true
+        releaseMinutes = 0
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
+            releaseMinutes += 1
+            if releaseMinutes >= 15 {
+                timer?.invalidate()
+                timer = nil
+                status = .error("等待超时：服务端仍未放行登录。请稍后再试，或点刷新重新扫码。")
+                return
+            }
+            manualRetry()
+        }
+    }
+
+    private func manualRetry() {
+        guard let session else { return }
+        Task {
+            do {
+                let result = try await QishuiAPI.shared.checkQRCode(session: session)
+                await MainActor.run {
+                    handle(result)
+                }
+            } catch {
+                // 网络抖动：忽略，等下一次
+            }
         }
     }
 
